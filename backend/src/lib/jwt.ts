@@ -6,9 +6,12 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET chưa được cấu hình trong file .env');
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET chưa được cấu hình trong file .env');
+  }
+  return secret;
 }
 
 export interface JwtPayload {
@@ -22,7 +25,7 @@ export interface JwtPayload {
  */
 export function signToken(payload: JwtPayload): string {
   const expiresIn = (process.env.JWT_EXPIRES_IN || '1h') as jwt.SignOptions['expiresIn'];
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJwtSecret(), {
     algorithm: 'HS256',
     expiresIn,
   });
@@ -32,7 +35,8 @@ export function signToken(payload: JwtPayload): string {
  * Xác thực và giải mã JWT token với thuật toán HS256 chỉ định rõ ràng
  */
 export function verifyToken(token: string): JwtPayload {
-  return jwt.verify(token, JWT_SECRET, {
+  const decoded = jwt.verify(token, getJwtSecret(), {
     algorithms: ['HS256'],
-  }) as JwtPayload;
+  });
+  return decoded as unknown as JwtPayload;
 }
