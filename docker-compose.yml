@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nha_tro_db
+    restart: always
+    environment:
+      POSTGRES_DB: nha_tro
+      POSTGRES_USER: nha_tro_owner
+      POSTGRES_PASSWORD: change_me
+    ports:
+      - "5432:5432"
+    volumes:
+      - nha_tro_pgdata:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+
+volumes:
+  nha_tro_pgdata:
