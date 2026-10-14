@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import authRoutes from './modules/auth/routes';
+import adminRoutes from './modules/admin/routes';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -18,6 +19,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // Đăng ký các module routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Khởi chạy server nếu file được chạy trực tiếp
 if (require.main === module) {
