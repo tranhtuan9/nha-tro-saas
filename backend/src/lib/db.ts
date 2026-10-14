@@ -15,6 +15,16 @@ if (!systemDbUrl || !appDbUrl) {
 }
 
 /**
+ * Ngữ cảnh người dùng trong phiên làm việc (User Context)
+ * Dùng để thiết lập RLS đa tầng (theo Tenant và theo User/Role)
+ */
+export interface TenantContext {
+  tenantId: string;
+  userId?: string;
+  role?: 'ADMIN' | 'LANDLORD' | 'RENTER' | string;
+}
+
+/**
  * 1. PRISMA CLIENT HỆ THỐNG (Vai trò: app_system)
  * - Có quyền BYPASSRLS.
  * - CHỈ DÙNG TRONG: Module Auth, Webhook payOS, Admin nền tảng, Seed.
@@ -34,49 +44,68 @@ export const prismaOwner = new PrismaClient({
 
 /**
  * 3. PRISMA CLIENT NGHIỆP VỤ CƠ BẢN (Vai trò: app_user)
- * - Không superuser, không BYPASSRLS, bị cưỡng chế bởi RLS qua 'app.current_tenant'.
+ * - Không superuser, không BYPASSRLS, bị cưỡng chế bởi RLS qua 'app.current_tenant',
+ *   'app.current_user_id', và 'app.current_role'.
  */
 export const prismaAppUser = new PrismaClient({
   datasourceUrl: appDbUrl,
 });
 
 /**
- * 4. THỰC THI GIAO DỊCH VỚI TENANT CONTEXT (withTenantTransaction)
+ * Hàm phụ trợ thiết lập các biến phiên RLS trong transaction
+ */
+async function setSessionContext(
+  tx: Prisma.TransactionClient,
+  context: TenantContext | string
+): Promise<void> {
+  const tenantId = typeof context === 'string' ? context : context.tenantId;
+  const userId = typeof context === 'string' ? '' : (context.userId || '');
+  const role = typeof context === 'string' ? '' : (context.role || '');
+
+  await tx.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, true)`;
+  await tx.$executeRaw`SELECT set_config('app.current_user_id', ${userId}, true)`;
+  await tx.$executeRaw`SELECT set_config('app.current_role', ${role}, true)`;
+}
+
+/**
+ * 4. THỰC THI GIAO DỊCH VỚI TENANT/USER CONTEXT (withTenantTransaction)
  * - Bắt buộc cho mọi thao tác nghiệp vụ nhiều bước (ví dụ: Tạo hóa đơn + Dòng hóa đơn).
- * - Mở một transaction, thiết lập biến phiên 'app.current_tenant' = tenantId (is_local = true).
- * - Biến tự động hết hiệu lực ngay khi transaction kết thúc (commit hoặc rollback).
+ * - Mở transaction, thiết lập đồng thời:
+ *     + app.current_tenant
+ *     + app.current_user_id
+ *     + app.current_role
+ * - Toàn bộ biến tự động thu hồi ngay khi transaction kết thúc (is_local = true).
  */
 export async function withTenantTransaction<T>(
-  tenantId: string,
+  context: TenantContext | string,
   fn: (tx: Prisma.TransactionClient) => Promise<T>
 ): Promise<T> {
   return prismaAppUser.$transaction(async (tx) => {
-    // Thiết lập tenant context cho transaction hiện tại
-    await tx.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, true)`;
+    await setSessionContext(tx, context);
     return await fn(tx);
   });
 }
 
 /**
- * 5. PRISMA CLIENT EXTENSION THEO TENANT (getTenantDb)
- * - Dành cho các truy vấn đơn lẻ của API nghiệp vụ.
- * - Tự động bọc mọi truy vấn model trong transaction có gán 'app.current_tenant'.
+ * 5. PRISMA CLIENT EXTENSION THEO TENANT & USER (getTenantDb)
+ * - Nhận context gồm { tenantId, userId, role } hoặc string tenantId (tương thích ngược).
+ * - Tự động bọc mọi truy vấn model trong transaction có gán đủ 3 biến phiên RLS.
  */
-export function getTenantDb(tenantId: string) {
+export function getTenantDb(context: TenantContext | string) {
   return prismaAppUser.$extends({
     client: {
       /**
-       * Mở transaction tùy chỉnh cho tenant hiện tại
+       * Mở transaction tùy chỉnh cho context hiện tại
        */
       async tenantTransaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-        return withTenantTransaction(tenantId, fn);
+        return withTenantTransaction(context, fn);
       },
     },
     query: {
       $allModels: {
         async $allOperations({ model, operation, args, query }) {
           return prismaAppUser.$transaction(async (tx) => {
-            await tx.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, true)`;
+            await setSessionContext(tx, context);
             return (tx as any)[model][operation](args);
           });
         },
