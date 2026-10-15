@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prismaSystem } from '../lib/db';
+import { ApiError } from '../lib/ApiError';
 import { UserRole } from '@prisma/client';
 
 /**
@@ -11,7 +12,7 @@ export async function requireActiveSubscription(
   next: NextFunction
 ): Promise<void> {
   if (!req.user) {
-    res.status(401).json({ message: 'Yêu cầu đăng nhập' });
+    next(ApiError.unauthorized('UNAUTHORIZED', 'Yêu cầu đăng nhập'));
     return;
   }
 
@@ -22,7 +23,7 @@ export async function requireActiveSubscription(
   }
 
   if (!req.user.tenantId) {
-    res.status(403).json({ message: 'Tài khoản không thuộc Tenant hợp lệ' });
+    next(ApiError.forbidden('NO_TENANT', 'Tài khoản không thuộc Tenant hợp lệ'));
     return;
   }
 
@@ -33,7 +34,7 @@ export async function requireActiveSubscription(
     });
 
     if (!tenant) {
-      res.status(404).json({ message: 'Không tìm thấy thông tin Tenant' });
+      next(ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy thông tin Tenant'));
       return;
     }
 
@@ -44,17 +45,18 @@ export async function requireActiveSubscription(
     subscriptionEnd.setHours(23, 59, 59, 999);
 
     if (today > subscriptionEnd) {
-      res.status(403).json({
-        message: 'Gói dịch vụ đã hết hạn. Bạn chỉ có quyền xem dữ liệu, không thể tạo mới.',
-        code: 'SUBSCRIPTION_EXPIRED',
-      });
+      next(
+        ApiError.forbidden(
+          'SUBSCRIPTION_EXPIRED',
+          'Gói dịch vụ đã hết hạn. Bạn chỉ có quyền xem dữ liệu, không thể tạo mới.'
+        )
+      );
       return;
     }
 
     next();
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi kiểm tra hạn dịch vụ' });
-    return;
+    next(ApiError.internal('INTERNAL_ERROR', 'Lỗi kiểm tra hạn dịch vụ'));
   }
 }
 
@@ -70,7 +72,7 @@ export function checkResourceLimit(resourceType: 'property' | 'room') {
 
     const tenantId = req.user.tenantId;
     if (!tenantId) {
-      res.status(403).json({ message: 'Thiếu tenantId' });
+      next(ApiError.forbidden('NO_TENANT', 'Thiếu tenantId'));
       return;
     }
 
@@ -81,7 +83,9 @@ export function checkResourceLimit(resourceType: 'property' | 'room') {
       });
 
       if (!tenant || !tenant.plan) {
-        res.status(404).json({ message: 'Không tìm thấy gói dịch vụ của Tenant' });
+        next(
+          ApiError.notFound('PLAN_NOT_FOUND', 'Không tìm thấy gói dịch vụ của Tenant')
+        );
         return;
       }
 
@@ -91,10 +95,12 @@ export function checkResourceLimit(resourceType: 'property' | 'room') {
         });
 
         if (currentCount >= tenant.plan.maxProperties) {
-          res.status(403).json({
-            message: `Bạn đã đạt giới hạn tối đa số nhà trọ (${tenant.plan.maxProperties}) của gói ${tenant.plan.name}. Vui lòng nâng cấp gói để tạo thêm.`,
-            code: 'PLAN_LIMIT_REACHED',
-          });
+          next(
+            ApiError.forbidden(
+              'PLAN_LIMIT_REACHED',
+              `Bạn đã đạt giới hạn tối đa số nhà trọ (${tenant.plan.maxProperties}) của gói ${tenant.plan.name}. Vui lòng nâng cấp gói để tạo thêm.`
+            )
+          );
           return;
         }
       } else if (resourceType === 'room') {
@@ -103,18 +109,19 @@ export function checkResourceLimit(resourceType: 'property' | 'room') {
         });
 
         if (currentCount >= tenant.plan.maxRooms) {
-          res.status(403).json({
-            message: `Bạn đã đạt giới hạn tối đa số phòng (${tenant.plan.maxRooms}) của gói ${tenant.plan.name}. Vui lòng nâng cấp gói để tạo thêm.`,
-            code: 'PLAN_LIMIT_REACHED',
-          });
+          next(
+            ApiError.forbidden(
+              'PLAN_LIMIT_REACHED',
+              `Bạn đã đạt giới hạn tối đa số phòng (${tenant.plan.maxRooms}) của gói ${tenant.plan.name}. Vui lòng nâng cấp gói để tạo thêm.`
+            )
+          );
           return;
         }
       }
 
       next();
     } catch (error) {
-      res.status(500).json({ message: 'Lỗi kiểm tra giới hạn gói' });
-      return;
+      next(ApiError.internal('INTERNAL_ERROR', 'Lỗi kiểm tra giới hạn gói'));
     }
   };
 }

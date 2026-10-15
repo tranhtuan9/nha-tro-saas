@@ -9,7 +9,12 @@ const router = Router();
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10, // cho phép tối đa 10 request login trong 15 phút
-  message: { message: 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau 15 phút.' },
+  message: {
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau 15 phút.',
+    },
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -18,7 +23,12 @@ const loginLimiter = rateLimit({
 const forgotPasswordLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
-  message: { message: 'Bạn đã yêu cầu gửi email quá nhiều lần. Vui lòng thử lại sau 1 giờ.' },
+  message: {
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Bạn đã yêu cầu gửi email quá nhiều lần. Vui lòng thử lại sau 1 giờ.',
+    },
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });

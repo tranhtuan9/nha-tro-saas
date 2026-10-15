@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { prismaSystem, getTenantDb } from '../../lib/db';
 import { signToken } from '../../lib/jwt';
 import { sendMail } from '../../lib/mail';
+import { ApiError } from '../../lib/ApiError';
 import { UserRole, UserStatus, TenantStatus } from '@prisma/client';
 import {
   RegisterLandlordInput,
@@ -37,7 +38,7 @@ export async function registerLandlord(input: RegisterLandlordInput) {
   });
 
   if (existingUser) {
-    throw new Error('Email này đã được sử dụng trong hệ thống');
+    throw ApiError.conflict('EMAIL_ALREADY_USED', 'Email này đã được sử dụng trong hệ thống');
   }
 
   // Đọc cấu hình từ .env
@@ -50,7 +51,10 @@ export async function registerLandlord(input: RegisterLandlordInput) {
   });
 
   if (!plan) {
-    throw new Error(`Gói dịch vụ mặc định '${defaultPlanName}' không tồn tại hoặc đã bị ẩn.`);
+    throw ApiError.internal(
+      'DEFAULT_PLAN_UNAVAILABLE',
+      `Gói dịch vụ mặc định '${defaultPlanName}' không tồn tại hoặc đã bị ẩn.`
+    );
   }
 
   const now = new Date();
@@ -111,12 +115,15 @@ export async function login(input: LoginInput) {
 
   // 1. Kiểm tra tồn tại và mật khẩu
   if (!user || !(await bcrypt.compare(input.password, user.passwordHash))) {
-    throw new Error('Email hoặc mật khẩu không chính xác');
+    throw ApiError.unauthorized('INVALID_CREDENTIALS', 'Email hoặc mật khẩu không chính xác');
   }
 
   // 2. Kiểm tra tài khoản bị khóa
   if (user.status === UserStatus.LOCKED) {
-    throw new Error('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.');
+    throw ApiError.unauthorized(
+      'ACCOUNT_LOCKED',
+      'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.'
+    );
   }
 
   // 3. Kiểm tra Tenant bị tạm ngưng (Bỏ qua với Admin)
@@ -127,7 +134,7 @@ export async function login(input: LoginInput) {
     });
 
     if (!tenant || tenant.status === TenantStatus.SUSPENDED) {
-      throw new Error('Hệ thống nhà trọ của bạn đang bị tạm ngưng.');
+      throw ApiError.unauthorized('TENANT_SUSPENDED', 'Hệ thống nhà trọ của bạn đang bị tạm ngưng.');
     }
   }
 
@@ -212,7 +219,10 @@ export async function resetPassword(input: ResetPasswordInput) {
   });
 
   if (!resetRecord) {
-    throw new Error('Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+    throw ApiError.badRequest(
+      'INVALID_RESET_TOKEN',
+      'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn'
+    );
   }
 
   const bcryptRounds = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
@@ -243,7 +253,7 @@ export async function getProfile(userId: string, role: UserRole, tenantId: strin
       where: { id: userId },
       select: safeUserSelect,
     });
-    if (!user) throw new Error('Không tìm thấy người dùng');
+    if (!user) throw ApiError.notFound('PROFILE_NOT_FOUND', 'Không tìm thấy người dùng');
     return user;
   }
 
@@ -253,7 +263,7 @@ export async function getProfile(userId: string, role: UserRole, tenantId: strin
     select: safeUserSelect,
   });
 
-  if (!user) throw new Error('Không tìm thấy thông tin hồ sơ');
+  if (!user) throw ApiError.notFound('PROFILE_NOT_FOUND', 'Không tìm thấy thông tin hồ sơ');
   return user;
 }
 
@@ -301,7 +311,7 @@ export async function changePassword(
   });
 
   if (!user || !(await bcrypt.compare(input.currentPassword, user.passwordHash))) {
-    throw new Error('Mật khẩu hiện tại không chính xác');
+    throw ApiError.badRequest('INVALID_CURRENT_PASSWORD', 'Mật khẩu hiện tại không chính xác');
   }
 
   const bcryptRounds = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);

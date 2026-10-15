@@ -1,4 +1,5 @@
 import { prismaSystem } from '../../lib/db';
+import { ApiError } from '../../lib/ApiError';
 import { UserRole, UserStatus, TenantStatus } from '@prisma/client';
 import {
   PaginationQuery,
@@ -70,14 +71,16 @@ export async function listUsers(query: PaginationQuery) {
 
 export async function lockUser(userId: string, adminId: string) {
   if (userId === adminId) {
-    throw new Error('Không thể khóa tài khoản của chính mình');
+    throw ApiError.badRequest('CANNOT_LOCK_SELF', 'Không thể khóa tài khoản của chính mình');
   }
 
   const user = await prismaSystem.user.findUnique({ where: { id: userId } });
-  if (!user) throw new Error('Không tìm thấy người dùng');
-  if (user.role === UserRole.ADMIN) throw new Error('Không thể khóa tài khoản Admin');
-  if (user.status === UserStatus.LOCKED) throw new Error('Tài khoản đã bị khóa');
+  if (!user) throw ApiError.notFound('USER_NOT_FOUND', 'Không tìm thấy người dùng');
+  if (user.role === UserRole.ADMIN) {
+    throw ApiError.badRequest('CANNOT_LOCK_ADMIN', 'Không thể khóa tài khoản Admin');
+  }
 
+  // Idempotent: nếu đã LOCKED, trả về trạng thái hiện tại (200)
   return prismaSystem.user.update({
     where: { id: userId },
     data: { status: UserStatus.LOCKED },
@@ -87,9 +90,9 @@ export async function lockUser(userId: string, adminId: string) {
 
 export async function unlockUser(userId: string) {
   const user = await prismaSystem.user.findUnique({ where: { id: userId } });
-  if (!user) throw new Error('Không tìm thấy người dùng');
-  if (user.status !== UserStatus.LOCKED) throw new Error('Tài khoản không bị khóa');
+  if (!user) throw ApiError.notFound('USER_NOT_FOUND', 'Không tìm thấy người dùng');
 
+  // Idempotent: nếu đã ACTIVE, trả về trạng thái hiện tại (200)
   return prismaSystem.user.update({
     where: { id: userId },
     data: { status: UserStatus.ACTIVE },
@@ -158,7 +161,7 @@ export async function getTenant(tenantId: string) {
     },
   });
 
-  if (!tenant) throw new Error('Không tìm thấy Tenant');
+  if (!tenant) throw ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy Tenant');
 
   const { _count, ...tenantData } = tenant;
 
@@ -175,9 +178,9 @@ export async function getTenant(tenantId: string) {
 
 export async function suspendTenant(tenantId: string) {
   const tenant = await prismaSystem.tenant.findUnique({ where: { id: tenantId } });
-  if (!tenant) throw new Error('Không tìm thấy Tenant');
-  if (tenant.status === TenantStatus.SUSPENDED) throw new Error('Tenant đã bị tạm ngưng');
+  if (!tenant) throw ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy Tenant');
 
+  // Idempotent: nếu đã SUSPENDED, trả về trạng thái hiện tại (200)
   return prismaSystem.tenant.update({
     where: { id: tenantId },
     data: { status: TenantStatus.SUSPENDED },
@@ -186,9 +189,9 @@ export async function suspendTenant(tenantId: string) {
 
 export async function activateTenant(tenantId: string) {
   const tenant = await prismaSystem.tenant.findUnique({ where: { id: tenantId } });
-  if (!tenant) throw new Error('Không tìm thấy Tenant');
-  if (tenant.status === TenantStatus.ACTIVE) throw new Error('Tenant đang hoạt động');
+  if (!tenant) throw ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy Tenant');
 
+  // Idempotent: nếu đã ACTIVE, trả về trạng thái hiện tại (200)
   return prismaSystem.tenant.update({
     where: { id: tenantId },
     data: { status: TenantStatus.ACTIVE },
@@ -217,7 +220,7 @@ export async function createPlan(input: CreatePlanInput) {
 
 export async function updatePlan(planId: string, input: UpdatePlanInput) {
   const plan = await prismaSystem.plan.findUnique({ where: { id: planId } });
-  if (!plan) throw new Error('Không tìm thấy gói dịch vụ');
+  if (!plan) throw ApiError.notFound('PLAN_NOT_FOUND', 'Không tìm thấy gói dịch vụ');
 
   return prismaSystem.plan.update({
     where: { id: planId },
@@ -236,16 +239,18 @@ export async function deactivatePlan(planId: string) {
     where: { id: planId },
     include: { _count: { select: { tenants: true } } },
   });
-  if (!plan) throw new Error('Không tìm thấy gói dịch vụ');
-  if (!plan.isActive) throw new Error('Gói đã bị ẩn');
+  if (!plan) throw ApiError.notFound('PLAN_NOT_FOUND', 'Không tìm thấy gói dịch vụ');
+
+  // Idempotent: nếu đã ẩn, trả về trạng thái hiện tại (200)
+  if (!plan.isActive) return plan;
 
   const defaultPlanName = process.env.DEFAULT_PLAN_NAME || 'Cơ bản';
   if (plan.name === defaultPlanName) {
-    throw new Error('Không thể ẩn gói mặc định');
+    throw ApiError.badRequest('CANNOT_DEACTIVATE_DEFAULT_PLAN', 'Không thể ẩn gói mặc định');
   }
 
   if (plan._count.tenants > 0) {
-    throw new Error('Không thể ẩn gói đang có Tenant sử dụng');
+    throw ApiError.badRequest('PLAN_IN_USE', 'Không thể ẩn gói đang có Tenant sử dụng');
   }
 
   return prismaSystem.plan.update({
@@ -259,11 +264,11 @@ export async function changeTenantPlan(tenantId: string, input: ChangeTenantPlan
     where: { id: tenantId },
     include: { plan: true },
   });
-  if (!tenant) throw new Error('Không tìm thấy Tenant');
+  if (!tenant) throw ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy Tenant');
 
   const plan = await prismaSystem.plan.findUnique({ where: { id: input.planId } });
-  if (!plan) throw new Error('Không tìm thấy gói dịch vụ');
-  if (!plan.isActive) throw new Error('Gói dịch vụ đã bị ẩn');
+  if (!plan) throw ApiError.notFound('PLAN_NOT_FOUND', 'Không tìm thấy gói dịch vụ');
+  if (!plan.isActive) throw ApiError.badRequest('PLAN_INACTIVE', 'Gói dịch vụ đã bị ẩn');
 
   const now = new Date();
   let subscriptionEnd: Date;

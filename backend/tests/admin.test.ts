@@ -231,7 +231,7 @@ describe('Kiểm thử Module Admin (UC04, UC05, UC06, UC07)', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toContain('chính mình');
+      expect(res.body.error.message).toContain('chính mình');
     });
 
     it('Response không chứa passwordHash và nationalId', async () => {
@@ -356,7 +356,7 @@ describe('Kiểm thử Module Admin (UC04, UC05, UC06, UC07)', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toContain('mặc định');
+      expect(res.body.error.message).toContain('mặc định');
     });
 
     it('Admin không thể ẩn gói đang được Tenant sử dụng', async () => {
@@ -396,7 +396,7 @@ describe('Kiểm thử Module Admin (UC04, UC05, UC06, UC07)', () => {
         .send({ planId: testPlanId });
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toContain('ẩn');
+      expect(res.body.error.message).toContain('ẩn');
     });
 
     it('Admin đổi gói nhỏ hơn số lượng hiện có trả về warnings', async () => {
@@ -446,6 +446,86 @@ describe('Kiểm thử Module Admin (UC04, UC05, UC06, UC07)', () => {
         .send({ planId: defaultPlanId, subscriptionEnd: futureDate.toISOString() });
 
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe('Idempotent: thao tác lặp trả 200 kèm trạng thái hiện tại', () => {
+    it('Khóa tài khoản đã bị khóa trả 200 với trạng thái LOCKED', async () => {
+      await request(app)
+        .patch(`/api/admin/users/${landlordId}/lock`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const res = await request(app)
+        .patch(`/api/admin/users/${landlordId}/lock`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.status).toBe(UserStatus.LOCKED);
+
+      await request(app)
+        .patch(`/api/admin/users/${landlordId}/unlock`)
+        .set('Authorization', `Bearer ${adminToken}`);
+    });
+
+    it('Mở khóa tài khoản đang hoạt động trả 200 với trạng thái ACTIVE', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${landlordId}/unlock`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.status).toBe(UserStatus.ACTIVE);
+    });
+
+    it('Tạm ngưng Tenant đã bị tạm ngưng trả 200 với trạng thái SUSPENDED', async () => {
+      await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/suspend`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const res = await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/suspend`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.status).toBe(TenantStatus.SUSPENDED);
+    });
+
+    it('Kích hoạt Tenant đang hoạt động trả 200 với trạng thái ACTIVE', async () => {
+      await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/activate`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const res = await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/activate`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.status).toBe(TenantStatus.ACTIVE);
+    });
+
+    it('Ẩn gói đã bị ẩn trả 200 với isActive=false', async () => {
+      const plan = await prismaSystem.plan.create({
+        data: {
+          name: `Gói Idempotent ${Date.now()}`,
+          maxProperties: 3,
+          maxRooms: 15,
+          price: 200000,
+          durationDays: 30,
+          isActive: true,
+        },
+      });
+
+      await request(app)
+        .patch(`/api/admin/plans/${plan.id}/deactivate`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const res = await request(app)
+        .patch(`/api/admin/plans/${plan.id}/deactivate`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.isActive).toBe(false);
+
+      await prismaSystem.plan.delete({ where: { id: plan.id } });
     });
   });
 });

@@ -79,8 +79,8 @@ describe('Kiểm thử Module Xác thực & Hồ sơ (Auth & Profile)', () => {
           tenantName: 'Nhà Trọ Trùng',
         });
 
-      expect(res.status).toBe(400);
-      expect(res.body.message).toContain('đã được sử dụng');
+      expect(res.status).toBe(409);
+      expect(res.body.error.message).toContain('đã được sử dụng');
     });
 
     it('Từ chối khi dữ liệu không hợp lệ (Zod)', async () => {
@@ -94,7 +94,7 @@ describe('Kiểm thử Module Xác thực & Hồ sơ (Auth & Profile)', () => {
         });
 
       expect(res.status).toBe(400);
-      expect(res.body.errors).toBeDefined();
+      expect(res.body.error.details).toBeDefined();
     });
   });
 
@@ -123,7 +123,7 @@ describe('Kiểm thử Module Xác thực & Hồ sơ (Auth & Profile)', () => {
         });
 
       expect(res.status).toBe(401);
-      expect(res.body.message).toContain('không chính xác');
+      expect(res.body.error.message).toContain('không chính xác');
     });
 
     it('Chặn đăng nhập khi tài khoản bị khóa (LOCKED)', async () => {
@@ -141,7 +141,7 @@ describe('Kiểm thử Module Xác thực & Hồ sơ (Auth & Profile)', () => {
         });
 
       expect(res.status).toBe(401);
-      expect(res.body.message).toContain('đã bị khóa');
+      expect(res.body.error.message).toContain('đã bị khóa');
 
       // Mở lại tài khoản
       await prismaSystem.user.update({
@@ -165,7 +165,7 @@ describe('Kiểm thử Module Xác thực & Hồ sơ (Auth & Profile)', () => {
         });
 
       expect(res.status).toBe(401);
-      expect(res.body.message).toContain('tạm ngưng');
+      expect(res.body.error.message).toContain('tạm ngưng');
 
       // Mở lại Tenant
       await prismaSystem.tenant.update({
@@ -308,7 +308,7 @@ describe('Kiểm thử Module Xác thực & Hồ sơ (Auth & Profile)', () => {
         });
 
       expect(resReuse.status).toBe(400);
-      expect(resReuse.body.message).toContain('hết hạn');
+      expect(resReuse.body.error.message).toContain('hết hạn');
 
       // Đăng nhập với mật khẩu sau khi đặt lại
       const resLogin = await request(app)
