@@ -18,6 +18,7 @@ interface TableCase {
   table: string;
   delegate: string;
   rows: () => { ownId: string; otherId: string; landlordCount: number };
+  b: () => { renterOwnId: string; landlordCount: number };
   insertOutside: (db: Db) => Promise<unknown>;
   updateOther: (db: Db, id: string) => Promise<unknown>;
   deleteOther: (db: Db, id: string) => Promise<unknown>;
@@ -65,8 +66,23 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
   let notif1Id: string;
   let notif2Id: string;
 
+  // Dữ liệu Tenant B (để kiểm chứng cách ly Tenant: B không thấy A)
+  let renterB1Id: string;
+  let propertyB1Id: string;
+  let roomB1Id: string;
+  let contractB1Id: string;
+  let meterB1Id: string;
+  let serviceB1Id: string;
+  let invoiceB1Id: string;
+  let lineB1Id: string;
+  let paymentB1Id: string;
+  let supportB1Id: string;
+  let notifB1Id: string;
+
   const dbA1 = () => getTenantDb({ tenantId: tenantAId, userId: renterA1Id, role: 'RENTER' });
   const dbLandlordA = () => getTenantDb({ tenantId: tenantAId, userId: landlordAId, role: 'LANDLORD' });
+  const dbB1 = () => getTenantDb({ tenantId: tenantBId, userId: renterB1Id, role: 'RENTER' });
+  const dbLandlordB = () => getTenantDb({ tenantId: tenantBId, userId: landlordBId, role: 'LANDLORD' });
 
   beforeAll(async () => {
     const plan = await prismaSystem.plan.findFirst({ where: { name: 'Cơ bản' } });
@@ -418,6 +434,149 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       },
     });
     notif2Id = notif2.id;
+
+    // ---------- Tenant B: mỗi bảng 1 dòng để kiểm chứng cách ly Tenant ----------
+    const renterB1 = await prismaSystem.user.create({
+      data: {
+        tenantId: tenantBId,
+        email: `rls.matrix.renter.b1.${ts}@example.com`,
+        passwordHash: 'dummy_hash',
+        fullName: 'Người thuê Matrix B1',
+        role: UserRole.RENTER,
+        status: UserStatus.ACTIVE,
+      },
+    });
+    renterB1Id = renterB1.id;
+
+    const propertyB1 = await prismaSystem.property.create({
+      data: {
+        tenantId: tenantBId,
+        name: 'Nhà trọ Matrix B1',
+        address: '1 Đường Matrix B',
+        electricityUnitPrice: 3500,
+        waterUnitPrice: 20000,
+        isActive: true,
+      },
+    });
+    propertyB1Id = propertyB1.id;
+
+    const roomB1 = await prismaSystem.room.create({
+      data: {
+        tenantId: tenantBId,
+        propertyId: propertyB1Id,
+        roomCode: 'MB101',
+        areaM2: 25,
+        basePrice: 3500000,
+        status: RoomStatus.OCCUPIED,
+      },
+    });
+    roomB1Id = roomB1.id;
+
+    const contractB1 = await prismaSystem.contract.create({
+      data: {
+        tenantId: tenantBId,
+        roomId: roomB1Id,
+        renterId: renterB1Id,
+        startDate: now,
+        endDate: nextYear,
+        monthlyRent: 3500000,
+        status: ContractStatus.ACTIVE,
+      },
+    });
+    contractB1Id = contractB1.id;
+
+    const meterB1 = await prismaSystem.meterReading.create({
+      data: {
+        tenantId: tenantBId,
+        roomId: roomB1Id,
+        billingMonth: month2,
+        electricityIndex: 100,
+        waterIndex: 50,
+        electricityUsage: 30,
+        waterUsage: 5,
+      },
+    });
+    meterB1Id = meterB1.id;
+
+    const serviceB1 = await prismaSystem.service.create({
+      data: {
+        tenantId: tenantBId,
+        propertyId: propertyB1Id,
+        name: 'Dịch vụ vệ sinh Matrix B1',
+        unit: 'tháng',
+        unitPrice: 100000,
+        isActive: true,
+      },
+    });
+    serviceB1Id = serviceB1.id;
+
+    const invoiceB1 = await prismaSystem.invoice.create({
+      data: {
+        tenantId: tenantBId,
+        contractId: contractB1Id,
+        meterReadingId: meterB1Id,
+        billingMonth: month2,
+        electricityUnitPrice: 3500,
+        waterUnitPrice: 20000,
+        rentAmount: 3500000,
+        electricityAmount: 105000,
+        waterAmount: 100000,
+        serviceAmount: 100000,
+        totalAmount: 3805000,
+        status: InvoiceStatus.UNPAID,
+        issueDate: month2,
+        dueDate: due4,
+      },
+    });
+    invoiceB1Id = invoiceB1.id;
+
+    const lineB1 = await prismaSystem.invoiceLineItem.create({
+      data: {
+        tenantId: tenantBId,
+        invoiceId: invoiceB1Id,
+        serviceId: serviceB1Id,
+        serviceName: serviceB1.name,
+        unit: 'tháng',
+        unitPrice: 100000,
+        quantity: 1,
+        amount: 100000,
+      },
+    });
+    lineB1Id = lineB1.id;
+
+    const paymentB1 = await prismaSystem.payment.create({
+      data: {
+        tenantId: tenantBId,
+        invoiceId: invoiceB1Id,
+        orderCode: BigInt(ts + 2),
+        amount: 3805000,
+        status: PaymentStatus.PENDING,
+      },
+    });
+    paymentB1Id = paymentB1.id;
+
+    const supportB1 = await prismaSystem.supportRequest.create({
+      data: {
+        tenantId: tenantBId,
+        renterId: renterB1Id,
+        type: SupportType.REPAIR,
+        title: 'Phản ánh Matrix B1',
+        content: 'Máy lạnh hỏng',
+        status: SupportStatus.OPEN,
+      },
+    });
+    supportB1Id = supportB1.id;
+
+    const notifB1 = await prismaSystem.notification.create({
+      data: {
+        tenantId: tenantBId,
+        userId: renterB1Id,
+        type: 'INVOICE',
+        title: 'Hóa đơn Matrix B1',
+        content: 'Bạn có hóa đơn mới',
+      },
+    });
+    notifB1Id = notifB1.id;
   });
 
   afterAll(async () => {
@@ -446,6 +605,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'users',
       delegate: 'user',
       rows: () => ({ ownId: renterA1Id, otherId: renterA2Id, landlordCount: 3 }),
+      b: () => ({ renterOwnId: renterB1Id, landlordCount: 2 }),
       insertOutside: (db) =>
         db.user.create({
           data: {
@@ -464,6 +624,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'properties',
       delegate: 'property',
       rows: () => ({ ownId: property1Id, otherId: property2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: propertyB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.property.create({
           data: {
@@ -481,6 +642,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'rooms',
       delegate: 'room',
       rows: () => ({ ownId: room1Id, otherId: room2Id, landlordCount: 3 }),
+      b: () => ({ renterOwnId: roomB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.room.create({
           data: {
@@ -498,6 +660,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'contracts',
       delegate: 'contract',
       rows: () => ({ ownId: contract1Id, otherId: contract2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: contractB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.contract.create({
           data: {
@@ -517,6 +680,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'meter_readings',
       delegate: 'meterReading',
       rows: () => ({ ownId: meter1Id, otherId: meter2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: meterB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.meterReading.create({
           data: {
@@ -537,6 +701,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'services',
       delegate: 'service',
       rows: () => ({ ownId: service1Id, otherId: service2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: serviceB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.service.create({
           data: {
@@ -554,6 +719,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'invoices',
       delegate: 'invoice',
       rows: () => ({ ownId: invoice1Id, otherId: invoice2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: invoiceB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.invoice.create({
           data: {
@@ -579,6 +745,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'invoice_line_items',
       delegate: 'invoiceLineItem',
       rows: () => ({ ownId: line1Id, otherId: line2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: lineB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.invoiceLineItem.create({
           data: {
@@ -599,6 +766,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'payments',
       delegate: 'payment',
       rows: () => ({ ownId: payment1Id, otherId: payment2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: paymentB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.payment.create({
           data: {
@@ -616,6 +784,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'support_requests',
       delegate: 'supportRequest',
       rows: () => ({ ownId: support1Id, otherId: support2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: supportB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.supportRequest.create({
           data: {
@@ -635,6 +804,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
       table: 'notifications',
       delegate: 'notification',
       rows: () => ({ ownId: notif1Id, otherId: notif2Id, landlordCount: 2 }),
+      b: () => ({ renterOwnId: notifB1Id, landlordCount: 1 }),
       insertOutside: (db) =>
         db.notification.create({
           data: {
@@ -652,7 +822,7 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
 
   describe.each(cases)(
     'Bảng $table',
-    ({ delegate: delegateName, rows, insertOutside, updateOther, deleteOther }) => {
+    ({ delegate: delegateName, rows, b, insertOutside, updateOther, deleteOther }) => {
       it('Renter A1 SELECT: thấy đúng dòng của mình, không thấy dòng của A2', async () => {
         const { ownId, otherId } = rows();
         const delegate = modelDelegate(dbA1(), delegateName);
@@ -688,6 +858,34 @@ describe('RLS matrix: 11 bảng có renter_restrictive_policy (PostgreSQL thật
 
         const all = await delegate.findMany();
         expect(all.length).toBe(landlordCount);
+      });
+
+      it('Renter B1 SELECT: không thấy dòng của Renter A1 (cách ly Tenant)', async () => {
+        const { ownId: aOwnId } = rows();
+        const { renterOwnId: bOwnId } = b();
+        const delegate = modelDelegate(dbB1(), delegateName);
+
+        const seenA = await delegate.findUnique({ where: { id: aOwnId } });
+        expect(seenA).toBeNull();
+
+        const all = await delegate.findMany();
+        const ids = all.map((r: { id: string }) => r.id);
+        expect(ids).not.toContain(aOwnId);
+        expect(ids).toEqual([bOwnId]);
+      });
+
+      it('Landlord B SELECT: không thấy dữ liệu Tenant A', async () => {
+        const { ownId: aOwnId } = rows();
+        const { landlordCount: bLandlordCount } = b();
+        const delegate = modelDelegate(dbLandlordB(), delegateName);
+
+        const seenA = await delegate.findUnique({ where: { id: aOwnId } });
+        expect(seenA).toBeNull();
+
+        const all = await delegate.findMany();
+        const ids = all.map((r: { id: string }) => r.id);
+        expect(ids).not.toContain(aOwnId);
+        expect(all.length).toBe(bLandlordCount);
       });
     }
   );
