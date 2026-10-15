@@ -6,6 +6,7 @@ import path from 'path';
 import authRoutes from './modules/auth/routes';
 import adminRoutes from './modules/admin/routes';
 import propertyRoutes from './modules/properties/routes';
+import roomRoutes from './modules/rooms/routes';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -43,6 +44,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/properties', propertyRoutes);
+app.use('/api/rooms', roomRoutes);
 
 // 404 cho mọi route không khớp
 app.use(notFoundHandler);
