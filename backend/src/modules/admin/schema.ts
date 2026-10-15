@@ -5,6 +5,16 @@ export const paginationQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().trim().optional(),
   status: z.string().trim().optional(),
+  role: z.enum(['ADMIN', 'LANDLORD', 'RENTER']).optional(),
+  tenantId: z.string().uuid().optional(),
+});
+
+export const tenantListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().optional(),
+  status: z.enum(['ACTIVE', 'SUSPENDED']).optional(),
+  subscriptionStatus: z.enum(['active', 'expiring_soon', 'expired']).optional(),
 });
 
 export const userIdParamSchema = z.object({
@@ -27,14 +37,25 @@ export const updatePlanSchema = z.object({
   durationDays: z.number().int().min(1).optional(),
 });
 
+export const createPlanSchema = z.object({
+  name: z.string().trim().min(2, 'Tên gói phải từ 2 ký tự trở lên').max(100),
+  maxProperties: z.number().int().min(0),
+  maxRooms: z.number().int().min(0),
+  price: z.number().min(0),
+  durationDays: z.number().int().min(1),
+});
+
 export const changeTenantPlanSchema = z.object({
   planId: z.string().uuid('ID gói không hợp lệ'),
   extendDays: z.number().int().min(1).optional(),
+  subscriptionEnd: z.coerce.date().optional(),
 });
 
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
+export type TenantListQuery = z.infer<typeof tenantListQuerySchema>;
 export type UserIdParam = z.infer<typeof userIdParamSchema>;
 export type TenantIdParam = z.infer<typeof tenantIdParamSchema>;
 export type PlanIdParam = z.infer<typeof planIdParamSchema>;
 export type UpdatePlanInput = z.infer<typeof updatePlanSchema>;
+export type CreatePlanInput = z.infer<typeof createPlanSchema>;
 export type ChangeTenantPlanInput = z.infer<typeof changeTenantPlanSchema>;

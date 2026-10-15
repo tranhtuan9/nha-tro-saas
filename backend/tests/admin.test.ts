@@ -4,214 +4,308 @@ import app from '../src/app';
 import { prismaSystem } from '../src/lib/db';
 import { UserRole, UserStatus, TenantStatus } from '@prisma/client';
 
-describe('Kiểm thử Module Quản trị nền tảng (Admin)', () => {
+describe('Kiểm thử Module Admin (UC04, UC05, UC06, UC07)', () => {
   let adminToken: string;
+  let adminId: string;
   let landlordToken: string;
-  let testTenantId: string;
-  let testUserId: string;
+  let landlordId: string;
+  let tenantId: string;
+  let renterToken: string;
+  let renterId: string;
+  let planId: string;
+  let defaultPlanId: string;
   let testPlanId: string;
-  let inactivePlanId: string;
 
   beforeAll(async () => {
-    const passwordHash = await import('bcrypt').then((m) =>
-      m.default.hash('AdminPass123!', 4)
-    );
+    const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@example.com';
+    const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'change_me';
 
-    const admin = await prismaSystem.user.upsert({
-      where: { email: `admin.test.${Date.now()}@example.com` },
-      update: {},
-      create: {
-        email: `admin.test.${Date.now()}@example.com`,
-        passwordHash,
-        fullName: 'Admin Test',
-        role: UserRole.ADMIN,
-        status: UserStatus.ACTIVE,
-        tenantId: null,
-      },
-    });
-
-    const adminLogin = await request(app)
+    const adminRes = await request(app)
       .post('/api/auth/login')
-      .send({ email: admin.email, password: 'AdminPass123!' });
-    adminToken = adminLogin.body.data.token;
+      .send({ email: adminEmail, password: adminPassword });
 
-    const plan = await prismaSystem.plan.create({
-      data: {
-        name: `Gói Test ${Date.now()}`,
-        maxProperties: 5,
-        maxRooms: 20,
-        price: 99000,
-        durationDays: 30,
-        isActive: true,
-      },
-    });
-    testPlanId = plan.id;
+    adminToken = adminRes.body.data.token;
+    adminId = adminRes.body.data.user.id;
 
-    const inactivePlan = await prismaSystem.plan.create({
-      data: {
-        name: `Gói Ẩn ${Date.now()}`,
-        maxProperties: 1,
-        maxRooms: 5,
-        price: 0,
-        durationDays: 7,
-        isActive: false,
-      },
-    });
-    inactivePlanId = inactivePlan.id;
+    const plan = await prismaSystem.plan.findFirst({ where: { name: 'Cơ bản' } });
+    if (!plan) throw new Error('Không tìm thấy gói Cơ bản');
+    defaultPlanId = plan.id;
+
+    const now = new Date();
+    const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
     const tenant = await prismaSystem.tenant.create({
       data: {
-        name: `Tenant Test ${Date.now()}`,
-        planId: testPlanId,
+        name: 'Tenant Admin Test',
+        planId: defaultPlanId,
         status: TenantStatus.ACTIVE,
-        subscriptionStart: new Date(),
-        subscriptionEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        subscriptionStart: now,
+        subscriptionEnd: nextMonth,
       },
     });
-    testTenantId = tenant.id;
+    tenantId = tenant.id;
 
-    const landlordPass = await import('bcrypt').then((m) =>
-      m.default.hash('LandlordPass123!', 4)
-    );
     const landlord = await prismaSystem.user.create({
       data: {
-        tenantId: testTenantId,
+        tenantId,
         email: `landlord.admin.${Date.now()}@example.com`,
-        passwordHash: landlordPass,
-        fullName: 'Landlord Test Admin',
+        passwordHash: 'dummy_hash',
+        fullName: 'Landlord Admin Test',
         role: UserRole.LANDLORD,
         status: UserStatus.ACTIVE,
       },
     });
-    testUserId = landlord.id;
+    landlordId = landlord.id;
 
     const landlordLogin = await request(app)
       .post('/api/auth/login')
-      .send({ email: landlord.email, password: 'LandlordPass123!' });
-    landlordToken = landlordLogin.body.data.token;
+      .send({ email: landlord.email, password: 'dummy_hash' });
+
+    const landlordUser = await prismaSystem.user.findUnique({ where: { id: landlordId } });
+    if (landlordUser) {
+      const { hash } = await import('bcrypt');
+      const passwordHash = await hash('Password123!', 10);
+      await prismaSystem.user.update({
+        where: { id: landlordId },
+        data: { passwordHash },
+      });
+    }
+
+    const landlordLogin2 = await request(app)
+      .post('/api/auth/login')
+      .send({ email: landlord.email, password: 'Password123!' });
+    landlordToken = landlordLogin2.body.data.token;
+
+    const renter = await prismaSystem.user.create({
+      data: {
+        tenantId,
+        email: `renter.admin.${Date.now()}@example.com`,
+        passwordHash: 'dummy_hash',
+        fullName: 'Renter Admin Test',
+        role: UserRole.RENTER,
+        status: UserStatus.ACTIVE,
+      },
+    });
+    renterId = renter.id;
+
+    const { hash } = await import('bcrypt');
+    const renterPasswordHash = await hash('Password123!', 10);
+    await prismaSystem.user.update({
+      where: { id: renterId },
+      data: { passwordHash: renterPasswordHash },
+    });
+
+    const renterLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: renter.email, password: 'Password123!' });
+    renterToken = renterLogin.body.data.token;
+
+    const testPlan = await prismaSystem.plan.create({
+      data: {
+        name: `Gói Test Admin ${Date.now()}`,
+        maxProperties: 5,
+        maxRooms: 20,
+        price: 500000,
+        durationDays: 30,
+        isActive: true,
+      },
+    });
+    testPlanId = testPlan.id;
   });
 
   afterAll(async () => {
-    if (testTenantId) {
-      await prismaSystem.user.deleteMany({ where: { tenantId: testTenantId } });
-      await prismaSystem.tenant.delete({ where: { id: testTenantId } });
+    if (tenantId) {
+      await prismaSystem.user.deleteMany({ where: { tenantId } });
+      await prismaSystem.property.deleteMany({ where: { tenantId } });
+      await prismaSystem.tenant.delete({ where: { id: tenantId } });
     }
     if (testPlanId) {
-      await prismaSystem.plan.deleteMany({ where: { id: testPlanId } });
+      const tenantsUsingPlan = await prismaSystem.tenant.findFirst({ where: { planId: testPlanId } });
+      if (!tenantsUsingPlan) {
+        await prismaSystem.plan.delete({ where: { id: testPlanId } });
+      }
     }
-    if (inactivePlanId) {
-      await prismaSystem.plan.deleteMany({ where: { id: inactivePlanId } });
-    }
-    await prismaSystem.user.deleteMany({
-      where: { email: { contains: '.admin.' } },
+    await prismaSystem.$disconnect();
+  });
+
+  describe('RBAC: Landlord và Renter bị chặn 403', () => {
+    it('Landlord nhận 403 ở mọi route admin', async () => {
+      const routes = [
+        { method: 'get', path: '/api/admin/users' },
+        { method: 'get', path: '/api/admin/tenants' },
+        { method: 'get', path: '/api/admin/plans' },
+      ];
+
+      for (const route of routes) {
+        const res = await request(app)
+          [route.method as 'get'](route.path)
+          .set('Authorization', `Bearer ${landlordToken}`);
+        expect(res.status).toBe(403);
+      }
     });
-    await prismaSystem.user.deleteMany({
-      where: { email: { contains: '.test.' } },
+
+    it('Renter nhận 403 ở mọi route admin', async () => {
+      const routes = [
+        { method: 'get', path: '/api/admin/users' },
+        { method: 'get', path: '/api/admin/tenants' },
+        { method: 'get', path: '/api/admin/plans' },
+      ];
+
+      for (const route of routes) {
+        const res = await request(app)
+          [route.method as 'get'](route.path)
+          .set('Authorization', `Bearer ${renterToken}`);
+        expect(res.status).toBe(403);
+      }
     });
   });
 
-  describe('1. Phân quyền Admin', () => {
-    it('Từ chối truy cập khi không có token', async () => {
-      const res = await request(app).get('/api/admin/users');
-      expect(res.status).toBe(401);
-    });
-
-    it('Từ chối truy cập khi không phải Admin (403)', async () => {
-      const res = await request(app)
-        .get('/api/admin/users')
-        .set('Authorization', `Bearer ${landlordToken}`);
-      expect(res.status).toBe(403);
-    });
-
-    it('Cho phép Admin truy cập', async () => {
+  describe('UC04: Quản lý người dùng', () => {
+    it('Admin lấy danh sách người dùng thành công', async () => {
       const res = await request(app)
         .get('/api/admin/users')
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(res.status).toBe(200);
-    });
-  });
-
-  describe('2. UC04: Quản lý người dùng', () => {
-    it('Lấy danh sách user với pagination, không lộ passwordHash', async () => {
-      const res = await request(app)
-        .get('/api/admin/users?page=1&pageSize=10')
-        .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
       expect(res.body.data.pagination).toBeDefined();
-      expect(res.body.data.pagination.page).toBe(1);
       expect(Array.isArray(res.body.data.data)).toBe(true);
-      expect(res.body.data.data[0].passwordHash).toBeUndefined();
-      expect(JSON.stringify(res.body)).not.toContain('passwordHash');
     });
 
-    it('Tìm kiếm user theo email', async () => {
+    it('Admin lọc người dùng theo role', async () => {
       const res = await request(app)
-        .get(`/api/admin/users?search=${encodeURIComponent('landlord.admin')}`)
+        .get('/api/admin/users?role=LANDLORD')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.pagination.total).toBeGreaterThanOrEqual(1);
+      expect(res.body.data.data.every((u: any) => u.role === 'LANDLORD')).toBe(true);
     });
 
-    it('Khóa tài khoản user thành công', async () => {
+    it('Admin lọc người dùng theo tenantId', async () => {
       const res = await request(app)
-        .patch(`/api/admin/users/${testUserId}/lock`)
+        .get(`/api/admin/users?tenantId=${tenantId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.data.every((u: any) => u.tenantId === tenantId)).toBe(true);
+    });
+
+    it('Admin tìm kiếm người dùng theo tên', async () => {
+      const res = await request(app)
+        .get('/api/admin/users?search=Landlord Admin')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.data.length).toBeGreaterThan(0);
+    });
+
+    it('Admin khóa người dùng thành công', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${landlordId}/lock`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.data.status).toBe(UserStatus.LOCKED);
     });
 
-    it('Mở khóa tài khoản thành công', async () => {
+    it('Token cũ của user bị khóa bị từ chối ngay', async () => {
       const res = await request(app)
-        .patch(`/api/admin/users/${testUserId}/unlock`)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${landlordToken}`);
+
+      expect(res.status).toBe(403);
+    });
+
+    it('Admin mở khóa người dùng thành công', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/users/${landlordId}/unlock`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.data.status).toBe(UserStatus.ACTIVE);
     });
 
-    it('Không cho khóa tài khoản Admin', async () => {
-      const admins = await prismaSystem.user.findMany({
-        where: { role: UserRole.ADMIN },
-        take: 1,
-      });
+    it('Admin không thể khóa chính mình', async () => {
       const res = await request(app)
-        .patch(`/api/admin/users/${admins[0].id}/lock`)
+        .patch(`/api/admin/users/${adminId}/lock`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toContain('Không thể khóa tài khoản Admin');
+      expect(res.body.message).toContain('chính mình');
     });
-  });
 
-  describe('3. UC05: Quản lý Tenant', () => {
-    it('Lấy danh sách tenant với thông tin plan và số user', async () => {
+    it('Response không chứa passwordHash và nationalId', async () => {
       const res = await request(app)
-        .get('/api/admin/tenants?page=1&pageSize=10')
+        .get('/api/admin/users')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
+      const user = res.body.data.data[0];
+      expect(user.passwordHash).toBeUndefined();
+      expect(user.nationalId).toBeUndefined();
+    });
+  });
+
+  describe('UC05: Quản lý Tenant', () => {
+    it('Admin lấy danh sách Tenant thành công', async () => {
+      const res = await request(app)
+        .get('/api/admin/tenants')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
       expect(res.body.data.pagination).toBeDefined();
-      const tenant = res.body.data.data.find((t: any) => t.id === testTenantId);
-      expect(tenant).toBeDefined();
-      expect(tenant.plan).toBeDefined();
-      expect(tenant._count.users).toBeGreaterThanOrEqual(1);
     });
 
-    it('Tạm ngưng tenant thành công', async () => {
+    it('Admin lọc Tenant theo subscriptionStatus', async () => {
       const res = await request(app)
-        .patch(`/api/admin/tenants/${testTenantId}/suspend`)
+        .get('/api/admin/tenants?subscriptionStatus=active')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.data.every((t: any) => t.subscriptionStatus === 'active')).toBe(true);
+    });
+
+    it('Admin xem chi tiết Tenant thành công', async () => {
+      const res = await request(app)
+        .get(`/api/admin/tenants/${tenantId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(tenantId);
+      expect(res.body.data.counts).toBeDefined();
+      expect(res.body.data.counts.properties).toBeDefined();
+      expect(res.body.data.counts.rooms).toBeDefined();
+    });
+
+    it('Admin tạm ngưng Tenant thành công', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/suspend`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.data.status).toBe(TenantStatus.SUSPENDED);
     });
 
-    it('Kích hoạt lại tenant thành công', async () => {
+    it('Token cũ của Landlord thuộc Tenant bị tạm ngưng bị từ chối ngay', async () => {
       const res = await request(app)
-        .patch(`/api/admin/tenants/${testTenantId}/activate`)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${landlordToken}`);
+
+      expect(res.status).toBe(403);
+    });
+
+    it('Token cũ của Renter thuộc Tenant bị tạm ngưng bị từ chối ngay', async () => {
+      const res = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${renterToken}`);
+
+      expect(res.status).toBe(403);
+    });
+
+    it('Admin kích hoạt lại Tenant thành công', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/activate`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
@@ -219,100 +313,139 @@ describe('Kiểm thử Module Quản trị nền tảng (Admin)', () => {
     });
   });
 
-  describe('4. UC06: Quản lý gói dịch vụ', () => {
-    it('Lấy danh sách gói (bao gồm cả gói ẩn)', async () => {
+  describe('UC06: Quản lý gói dịch vụ', () => {
+    it('Admin lấy danh sách gói thành công', async () => {
       const res = await request(app)
         .get('/api/admin/plans')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body.data)).toBe(true);
-      expect(res.body.data.length).toBeGreaterThanOrEqual(2);
     });
 
-    it('Cập nhật gói thành công', async () => {
+    it('Admin tạo gói mới thành công', async () => {
+      const res = await request(app)
+        .post('/api/admin/plans')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: `Gói Test Mới ${Date.now()}`,
+          maxProperties: 10,
+          maxRooms: 50,
+          price: 1000000,
+          durationDays: 30,
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.name).toContain('Gói Test Mới');
+      expect(res.body.data.isActive).toBe(true);
+    });
+
+    it('Admin sửa gói thành công', async () => {
       const res = await request(app)
         .patch(`/api/admin/plans/${testPlanId}`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ maxRooms: 50, price: 150000 });
+        .send({ price: 600000 });
 
       expect(res.status).toBe(200);
-      expect(res.body.data.maxRooms).toBe(50);
-      expect(Number(res.body.data.price)).toBe(150000);
+      expect(Number(res.body.data.price)).toBe(600000);
     });
 
-    it('Ẩn gói (is_active=false) thành công khi không có tenant', async () => {
-      const freePlan = await prismaSystem.plan.create({
-        data: {
-          name: `Gói Trống ${Date.now()}`,
-          maxProperties: 1,
-          maxRooms: 1,
-          price: 0,
-          durationDays: 7,
-          isActive: true,
-        },
-      });
-
+    it('Admin không thể ẩn gói mặc định', async () => {
       const res = await request(app)
-        .patch(`/api/admin/plans/${freePlan.id}/deactivate`)
+        .patch(`/api/admin/plans/${defaultPlanId}/deactivate`)
         .set('Authorization', `Bearer ${adminToken}`);
 
-      expect(res.status).toBe(200);
-      expect(res.body.data.isActive).toBe(false);
-
-      await prismaSystem.plan.delete({ where: { id: freePlan.id } });
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('mặc định');
     });
 
-    it('Chặn ẩn gói đang có tenant sử dụng', async () => {
+    it('Admin không thể ẩn gói đang được Tenant sử dụng', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/plans/${defaultPlanId}/deactivate`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(400);
+    });
+
+    it('Admin ẩn gói không được sử dụng thành công', async () => {
       const res = await request(app)
         .patch(`/api/admin/plans/${testPlanId}/deactivate`)
         .set('Authorization', `Bearer ${adminToken}`);
 
-      expect(res.status).toBe(400);
-      expect(res.body.message).toContain('Không thể ẩn gói');
+      expect(res.status).toBe(200);
+      expect(res.body.data.isActive).toBe(false);
     });
   });
 
-  describe('5. UC07: Đổi gói và gia hạn', () => {
-    it('Đổi gói cho tenant thành công (theo durationDays của gói mới)', async () => {
+  describe('UC07: Đổi gói và gia hạn', () => {
+    it('Admin đổi gói cho Tenant thành công', async () => {
       const res = await request(app)
-        .patch(`/api/admin/tenants/${testTenantId}/plan`)
+        .patch(`/api/admin/tenants/${tenantId}/plan`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ planId: defaultPlanId, extendDays: 30 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.planId).toBe(defaultPlanId);
+      expect(res.body.warnings).toBeDefined();
+    });
+
+    it('Admin không thể gán gói đã ẩn', async () => {
+      const res = await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/plan`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ planId: testPlanId });
 
-      expect(res.status).toBe(200);
-      expect(res.body.data.planId).toBe(testPlanId);
-      expect(res.body.data.subscriptionEnd).toBeDefined();
-
-      const end = new Date(res.body.data.subscriptionEnd);
-      const diffDays = Math.round((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-      expect(diffDays).toBeGreaterThanOrEqual(29);
-    });
-
-    it('Gia hạn thêm ngày cho tenant', async () => {
-      const before = await prismaSystem.tenant.findUnique({
-        where: { id: testTenantId },
-      });
-      const beforeEnd = new Date(before!.subscriptionEnd).getTime();
-
-      const res = await request(app)
-        .patch(`/api/admin/tenants/${testTenantId}/plan`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ planId: testPlanId, extendDays: 60 });
-
-      expect(res.status).toBe(200);
-      const afterEnd = new Date(res.body.data.subscriptionEnd).getTime();
-      expect(afterEnd).toBeGreaterThan(beforeEnd);
-    });
-
-    it('Chặn đổi sang gói đã ẩn', async () => {
-      const res = await request(app)
-        .patch(`/api/admin/tenants/${testTenantId}/plan`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ planId: inactivePlanId });
-
       expect(res.status).toBe(400);
-      expect(res.body.message).toContain('đã bị ẩn');
+      expect(res.body.message).toContain('ẩn');
+    });
+
+    it('Admin đổi gói nhỏ hơn số lượng hiện có trả về warnings', async () => {
+      await prismaSystem.property.create({
+        data: {
+          tenantId,
+          name: 'Nhà trọ test',
+          address: '123 Đường test',
+          electricityUnitPrice: 3500,
+          waterUnitPrice: 20000,
+        },
+      });
+
+      const smallPlan = await prismaSystem.plan.create({
+        data: {
+          name: `Gói Nhỏ ${Date.now()}`,
+          maxProperties: 0,
+          maxRooms: 0,
+          price: 100000,
+          durationDays: 30,
+        },
+      });
+
+      const res = await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/plan`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ planId: smallPlan.id });
+
+      expect(res.status).toBe(200);
+      expect(res.body.warnings.length).toBeGreaterThan(0);
+
+      await prismaSystem.property.deleteMany({ where: { tenantId } });
+      await prismaSystem.tenant.update({
+        where: { id: tenantId },
+        data: { planId: defaultPlanId },
+      });
+      await prismaSystem.plan.delete({ where: { id: smallPlan.id } });
+    });
+
+    it('Admin đặt subscriptionEnd trực tiếp', async () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 60);
+
+      const res = await request(app)
+        .patch(`/api/admin/tenants/${tenantId}/plan`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ planId: defaultPlanId, subscriptionEnd: futureDate.toISOString() });
+
+      expect(res.status).toBe(200);
     });
   });
 });

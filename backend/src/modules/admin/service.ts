@@ -2,7 +2,9 @@ import { prismaSystem } from '../../lib/db';
 import { UserRole, UserStatus, TenantStatus } from '@prisma/client';
 import {
   PaginationQuery,
+  TenantListQuery,
   UpdatePlanInput,
+  CreatePlanInput,
   ChangeTenantPlanInput,
 } from './schema';
 
@@ -11,7 +13,6 @@ const safeUserSelect = {
   email: true,
   fullName: true,
   phone: true,
-  nationalId: true,
   role: true,
   status: true,
   tenantId: true,
@@ -19,10 +20,18 @@ const safeUserSelect = {
   createdAt: true,
 };
 
-function buildPagination(query: PaginationQuery) {
+function buildPagination(query: { page?: number; pageSize?: number }) {
   const page = query.page ?? 1;
   const pageSize = query.pageSize ?? 20;
   return { skip: (page - 1) * pageSize, take: pageSize, page, pageSize };
+}
+
+function computeSubscriptionStatus(subscriptionEnd: Date): 'active' | 'expiring_soon' | 'expired' {
+  const now = new Date();
+  const daysLeft = Math.ceil((subscriptionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysLeft < 0) return 'expired';
+  if (daysLeft <= 30) return 'expiring_soon';
+  return 'active';
 }
 
 export async function listUsers(query: PaginationQuery) {
@@ -30,6 +39,8 @@ export async function listUsers(query: PaginationQuery) {
 
   const where: any = {};
   if (query.status) where.status = query.status as UserStatus;
+  if (query.role) where.role = query.role as UserRole;
+  if (query.tenantId) where.tenantId = query.tenantId;
   if (query.search) {
     where.OR = [
       { email: { contains: query.search, mode: 'insensitive' } },
@@ -57,7 +68,11 @@ export async function listUsers(query: PaginationQuery) {
   };
 }
 
-export async function lockUser(userId: string) {
+export async function lockUser(userId: string, adminId: string) {
+  if (userId === adminId) {
+    throw new Error('Không thể khóa tài khoản của chính mình');
+  }
+
   const user = await prismaSystem.user.findUnique({ where: { id: userId } });
   if (!user) throw new Error('Không tìm thấy người dùng');
   if (user.role === UserRole.ADMIN) throw new Error('Không thể khóa tài khoản Admin');
@@ -82,7 +97,7 @@ export async function unlockUser(userId: string) {
   });
 }
 
-export async function listTenants(query: PaginationQuery) {
+export async function listTenants(query: TenantListQuery) {
   const { skip, take, page, pageSize } = buildPagination(query);
 
   const where: any = {};
@@ -97,7 +112,7 @@ export async function listTenants(query: PaginationQuery) {
       where,
       include: {
         plan: { select: { id: true, name: true, price: true } },
-        _count: { select: { users: true } },
+        _count: { select: { users: true, properties: true, rooms: true } },
       },
       orderBy: { createdAt: 'desc' },
       skip,
@@ -105,9 +120,56 @@ export async function listTenants(query: PaginationQuery) {
     }),
   ]);
 
+  let filtered = tenants;
+  if (query.subscriptionStatus) {
+    filtered = tenants.filter((t: any) => {
+      const status = computeSubscriptionStatus(t.subscriptionEnd);
+      return status === query.subscriptionStatus;
+    });
+  }
+
+  const data = filtered.map((t: any) => ({
+    id: t.id,
+    name: t.name,
+    status: t.status,
+    subscriptionStart: t.subscriptionStart,
+    subscriptionEnd: t.subscriptionEnd,
+    subscriptionStatus: computeSubscriptionStatus(t.subscriptionEnd),
+    plan: t.plan,
+    counts: {
+      users: t._count.users,
+      properties: t._count.properties,
+      rooms: t._count.rooms,
+    },
+  }));
+
   return {
-    data: tenants,
+    data,
     pagination: { page, pageSize, total },
+  };
+}
+
+export async function getTenant(tenantId: string) {
+  const tenant = await prismaSystem.tenant.findUnique({
+    where: { id: tenantId },
+    include: {
+      plan: { select: { id: true, name: true, price: true, maxProperties: true, maxRooms: true } },
+      _count: { select: { users: true, properties: true, rooms: true } },
+    },
+  });
+
+  if (!tenant) throw new Error('Không tìm thấy Tenant');
+
+  const { _count, ...tenantData } = tenant;
+
+  return {
+    ...tenantData,
+    subscriptionStatus: computeSubscriptionStatus(tenant.subscriptionEnd),
+    counts: {
+      users: _count.users,
+      properties: _count.properties,
+      rooms: _count.rooms,
+    },
   };
 }
 
@@ -140,6 +202,19 @@ export async function listPlans() {
   });
 }
 
+export async function createPlan(input: CreatePlanInput) {
+  return prismaSystem.plan.create({
+    data: {
+      name: input.name,
+      maxProperties: input.maxProperties,
+      maxRooms: input.maxRooms,
+      price: input.price,
+      durationDays: input.durationDays,
+      isActive: true,
+    },
+  });
+}
+
 export async function updatePlan(planId: string, input: UpdatePlanInput) {
   const plan = await prismaSystem.plan.findUnique({ where: { id: planId } });
   if (!plan) throw new Error('Không tìm thấy gói dịch vụ');
@@ -163,6 +238,12 @@ export async function deactivatePlan(planId: string) {
   });
   if (!plan) throw new Error('Không tìm thấy gói dịch vụ');
   if (!plan.isActive) throw new Error('Gói đã bị ẩn');
+
+  const defaultPlanName = process.env.DEFAULT_PLAN_NAME || 'Cơ bản';
+  if (plan.name === defaultPlanName) {
+    throw new Error('Không thể ẩn gói mặc định');
+  }
+
   if (plan._count.tenants > 0) {
     throw new Error('Không thể ẩn gói đang có Tenant sử dụng');
   }
@@ -174,7 +255,10 @@ export async function deactivatePlan(planId: string) {
 }
 
 export async function changeTenantPlan(tenantId: string, input: ChangeTenantPlanInput) {
-  const tenant = await prismaSystem.tenant.findUnique({ where: { id: tenantId } });
+  const tenant = await prismaSystem.tenant.findUnique({
+    where: { id: tenantId },
+    include: { plan: true },
+  });
   if (!tenant) throw new Error('Không tìm thấy Tenant');
 
   const plan = await prismaSystem.plan.findUnique({ where: { id: input.planId } });
@@ -184,14 +268,32 @@ export async function changeTenantPlan(tenantId: string, input: ChangeTenantPlan
   const now = new Date();
   let subscriptionEnd: Date;
 
-  if (input.extendDays) {
+  if (input.subscriptionEnd) {
+    subscriptionEnd = input.subscriptionEnd;
+  } else if (input.extendDays) {
     const base = tenant.subscriptionEnd > now ? tenant.subscriptionEnd : now;
     subscriptionEnd = new Date(base.getTime() + input.extendDays * 24 * 60 * 60 * 1000);
   } else {
     subscriptionEnd = new Date(now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
   }
 
-  return prismaSystem.tenant.update({
+  const warnings: string[] = [];
+
+  const propertyCount = await prismaSystem.property.count({
+    where: { tenantId, isActive: true },
+  });
+  if (propertyCount > plan.maxProperties) {
+    warnings.push(`Tenant đang có ${propertyCount} nhà trọ, vượt quá giới hạn ${plan.maxProperties} của gói mới`);
+  }
+
+  const roomCount = await prismaSystem.room.count({
+    where: { tenantId },
+  });
+  if (roomCount > plan.maxRooms) {
+    warnings.push(`Tenant đang có ${roomCount} phòng, vượt quá giới hạn ${plan.maxRooms} của gói mới`);
+  }
+
+  const updated = await prismaSystem.tenant.update({
     where: { id: tenantId },
     data: {
       planId: plan.id,
@@ -199,4 +301,6 @@ export async function changeTenantPlan(tenantId: string, input: ChangeTenantPlan
       subscriptionEnd,
     },
   });
+
+  return { tenant: updated, warnings };
 }

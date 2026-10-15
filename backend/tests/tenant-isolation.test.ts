@@ -9,10 +9,13 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
   let landlordAId: string;
   let landlordBId: string;
   let propertyAId: string;
+  let roomAId: string;
+  let roomA2Id: string;
   let renterA1Id: string;
   let renterA2Id: string;
   let contractA1Id: string;
   let contractA2Id: string;
+  let meterReadingA1Id: string;
 
   beforeAll(async () => {
     // 1. Dùng prismaSystem (app_system, BYPASSRLS) để chuẩn bị môi trường test
@@ -108,6 +111,7 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
     if (tenantAId) {
       await prismaSystem.auditLog.deleteMany({ where: { tenantId: tenantAId } });
       await prismaSystem.contract.deleteMany({ where: { tenantId: tenantAId } });
+      await prismaSystem.meterReading.deleteMany({ where: { tenantId: tenantAId } });
       await prismaSystem.room.deleteMany({ where: { tenantId: tenantAId } });
       await prismaSystem.property.deleteMany({ where: { tenantId: tenantAId } });
       await prismaSystem.user.deleteMany({ where: { tenantId: tenantAId } });
@@ -116,6 +120,7 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
     if (tenantBId) {
       await prismaSystem.auditLog.deleteMany({ where: { tenantId: tenantBId } });
       await prismaSystem.contract.deleteMany({ where: { tenantId: tenantBId } });
+      await prismaSystem.meterReading.deleteMany({ where: { tenantId: tenantBId } });
       await prismaSystem.room.deleteMany({ where: { tenantId: tenantBId } });
       await prismaSystem.property.deleteMany({ where: { tenantId: tenantBId } });
       await prismaSystem.user.deleteMany({ where: { tenantId: tenantBId } });
@@ -160,6 +165,7 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
 
     expect(roomA).toBeDefined();
     expect(roomA.tenantId).toBe(tenantAId);
+    roomAId = roomA.id;
 
     const properties = await dbA.property.findMany();
     expect(properties.length).toBe(1);
@@ -293,9 +299,24 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
         basePrice: 4000000,
       },
     });
+    roomA2Id = roomA2.id;
 
     const now = new Date();
     const nextYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+    // Tạo chỉ số điện nước cho phòng P101 (phòng của Renter A1)
+    const meterReadingA1 = await dbLandlordA.meterReading.create({
+      data: {
+        tenantId: tenantAId,
+        roomId: roomAId,
+        billingMonth: now,
+        electricityIndex: 100,
+        waterIndex: 50,
+        electricityUsage: 30,
+        waterUsage: 5,
+      },
+    });
+    meterReadingA1Id = meterReadingA1.id;
 
     // Tạo Hợp đồng 1 cho Renter A1
     const contract1 = await dbLandlordA.contract.create({
@@ -365,5 +386,67 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
     // Trong khi đó, Landlord A xem danh sách -> Thấy đầy đủ cả 2 hợp đồng
     const allContractsLandlord = await dbLandlordA.contract.findMany();
     expect(allContractsLandlord.length).toBe(2);
+  });
+
+  it('8. Renter RLS RESTRICTIVE: chỉ thấy dữ liệu liên quan đến hợp đồng của mình', async () => {
+    const dbRenterA1 = getTenantDb({
+      tenantId: tenantAId,
+      userId: renterA1Id,
+      role: 'RENTER',
+    });
+
+    const dbRenterA2 = getTenantDb({
+      tenantId: tenantAId,
+      userId: renterA2Id,
+      role: 'RENTER',
+    });
+
+    const dbLandlordA = getTenantDb({
+      tenantId: tenantAId,
+      userId: landlordAId,
+      role: 'LANDLORD',
+    });
+
+    // users: Renter A1 chỉ thấy 1 dòng (mình)
+    const usersA1 = await dbRenterA1.user.findMany();
+    expect(usersA1.length).toBe(1);
+    expect(usersA1[0].id).toBe(renterA1Id);
+
+    // users: Renter A2 chỉ thấy 1 dòng (mình)
+    const usersA2 = await dbRenterA2.user.findMany();
+    expect(usersA2.length).toBe(1);
+    expect(usersA2[0].id).toBe(renterA2Id);
+
+    // rooms: Renter A1 chỉ thấy phòng P101 (trong hợp đồng)
+    const roomsA1 = await dbRenterA1.room.findMany();
+    expect(roomsA1.length).toBe(1);
+    expect(roomsA1[0].id).toBe(roomAId);
+
+    // rooms: Renter A2 chỉ thấy phòng P102 (trong hợp đồng)
+    const roomsA2 = await dbRenterA2.room.findMany();
+    expect(roomsA2.length).toBe(1);
+    expect(roomsA2[0].id).toBe(roomA2Id);
+
+    // properties: Renter A1 chỉ thấy property chứa phòng P101
+    const propertiesA1 = await dbRenterA1.property.findMany();
+    expect(propertiesA1.length).toBe(1);
+    expect(propertiesA1[0].id).toBe(propertyAId);
+
+    // meter_readings: Renter A1 chỉ thấy chỉ số của phòng P101
+    const metersA1 = await dbRenterA1.meterReading.findMany();
+    expect(metersA1.length).toBe(1);
+    expect(metersA1[0].id).toBe(meterReadingA1Id);
+
+    // meter_readings: Renter A2 không thấy chỉ số của phòng P101
+    const metersA2 = await dbRenterA2.meterReading.findMany();
+    expect(metersA2.length).toBe(0);
+
+    // Landlord vẫn đọc được toàn bộ
+    const allRooms = await dbLandlordA.room.findMany();
+    expect(allRooms.length).toBe(2);
+    const allProperties = await dbLandlordA.property.findMany();
+    expect(allProperties.length).toBe(1);
+    const allMeters = await dbLandlordA.meterReading.findMany();
+    expect(allMeters.length).toBe(1);
   });
 });

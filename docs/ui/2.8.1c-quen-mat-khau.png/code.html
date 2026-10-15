@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_blank" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "tertiary-container": "#bc4800", "on-background": "#0b1c30", "on-secondary-fixed": "#001e2f", "primary-fixed-dim": "#b4c5ff", "inverse-on-surface": "#eaf1ff", "primary-fixed": "#dbe1ff", "on-tertiary-fixed-variant": "#7d2d00", "surface-container-high": "#dce9ff", "surface-container-lowest": "#ffffff", "surface-dim": "#cbdbf5", "tertiary-fixed-dim": "#ffb596", "secondary-fixed-dim": "#89ceff", "primary-container": "#2563eb", "primary": "#004ac6", "surface-container": "#e5eeff", "surface-variant": "#d3e4fe", "secondary-fixed": "#c9e6ff", "on-secondary-fixed-variant": "#004c6e", "error-container": "#ffdad6", "surface-container-highest": "#d3e4fe", "on-error-container": "#93000a", "secondary-container": "#39b8fd", "on-error": "#ffffff", "on-primary-fixed": "#00174b", "on-tertiary-container": "#ffede6", "on-tertiary": "#ffffff", "outline": "#737686", "on-secondary-container": "#004666", "on-surface": "#0b1c30", "on-surface-variant": "#434655", "surface-tint": "#0053db", "background": "#f8f9ff", "on-primary-fixed-variant": "#003ea8", "surface": "#f8f9ff", "inverse-primary": "#b4c5ff", "surface-container-low": "#eff4ff", "on-secondary": "#ffffff", "surface-bright": "#f8f9ff", "inverse-surface": "#213145", "on-primary": "#ffffff", "tertiary": "#943700", "outline-variant": "#c3c6d7", "secondary": "#006591", "error": "#ba1a1a", "on-primary-container": "#eeefff", "on-tertiary-fixed": "#360f00", "tertiary-fixed": "#ffdbcd" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "gutter": "1.5rem", "margin": "2rem", "space-md": "1rem", "space-xl": "2rem" }, "fontFamily": { "label-md": ["Inter"], "headline-md": ["Inter"], "label-sm": ["Inter"], "label-xs": ["Inter"], "body-md-medium": ["Inter"], "headline-sm": ["Inter"], "body-sm": ["Inter"], "headline-lg": ["Inter"], "body-lg": ["Inter"], "body-md": ["Inter"] }, "fontSize": { "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }], "headline-md": ["18px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }], "label-xs": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }], "body-md-medium": ["14px", { "lineHeight": "20px", "fontWeight": "500" }], "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }] } } } };</script></head><body class="bg-surface font-body-md text-on-surface min-h-screen flex flex-col justify-between selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="w-full py-space-lg px-margin flex items-center justify-between"><a class="inline-flex items-center gap-space-sm text-primary" href="#"><div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><span class="material-symbols-outlined text-[24px]">apartment</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">Quản lý nhà trọ</span><span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider">Quản lý vận hành</span></div></a><div class="inline-flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-[18px] text-primary">verified_user</span><span class="">Bảo mật hệ thống</span></div></header><main class="w-full flex-1 flex items-center justify-center px-space-md py-space-xl"><div class="flex flex-col w-full items-center justify-center py-space-md">
+<!-- Subtle decorative ambient glows behind card -->
+<div class="relative w-full max-w-[500px]">
+<div class="absolute -top-12 -left-10 w-44 h-44 rounded-full bg-primary-fixed-dim/20 blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-10 -right-8 w-48 h-48 rounded-full bg-secondary-fixed/25 blur-3xl pointer-events-none"></div>
+<!-- Centered Card Surface -->
+<div class="relative bg-surface-container-lowest rounded-xl shadow-xl overflow-hidden p-space-xl sm:p-margin transition-all duration-300">
+<!-- Header Section -->
+<div class="flex flex-col items-center text-center">
+<!-- Brand Icon Badge -->
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary shadow-sm mb-space-md">
+<span class="material-symbols-outlined text-[28px]">lock_reset</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+          Quên mật khẩu
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs max-w-sm">
+          Khôi phục quyền truy cập vào tài khoản quản lý nhà trọ của bạn
+        </p>
+</div>
+<!-- Step Indicator Bar -->
+<div class="mt-space-lg mb-space-md bg-surface-container-low rounded-lg p-space-xs flex items-center gap-space-xs">
+<!-- Step 1 Button/Tab -->
+<button class="flex-1 flex items-center justify-center gap-space-xs py-space-xs px-space-sm rounded-lg bg-surface-container-lowest shadow-sm text-primary transition-all" id="step-btn-1" onclick="switchStep(1)" type="button">
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] font-label-xs flex items-center justify-center" id="badge-step-1">1</span>
+<span class="font-label-md text-label-md" id="label-step-1">Nhập Email</span>
+</button>
+<!-- Divider line -->
+<div class="w-4 h-[2px] bg-outline-variant/40 rounded-full"></div>
+<!-- Step 2 Button/Tab -->
+<button class="flex-1 flex items-center justify-center gap-space-xs py-space-xs px-space-sm rounded-lg text-on-surface-variant hover:text-on-surface transition-all" id="step-btn-2" onclick="switchStep(2)" type="button">
+<span class="w-5 h-5 rounded-full bg-surface-variant text-on-surface-variant text-[11px] font-label-xs flex items-center justify-center" id="badge-step-2">2</span>
+<span class="font-label-md text-label-md" id="label-step-2">Đặt lại mật khẩu</span>
+</button>
+</div>
+<!-- Soft Blue Information Alert -->
+<div class="bg-surface-container text-on-surface rounded-lg p-space-sm flex items-start gap-space-sm mb-space-lg">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">info</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Nếu email tồn tại trong hệ thống, mã xác thực gồm 6 số sẽ được gửi đến hòm thư của bạn ngay lập tức.
+        </p>
+</div>
+<!-- FORM WORKFLOW -->
+<form class="flex flex-col gap-space-md" id="forgot-password-form" onsubmit="event.preventDefault(); handlePrimaryAction();">
+<!-- STEP 1 CONTENT -->
+<div class="flex flex-col gap-space-md transition-opacity duration-200" id="section-step-1">
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface flex items-center justify-between" for="user-email">
+<span class="">Địa chỉ Email liên kết</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Bắt buộc</span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-[20px] text-outline">mail</span>
+<input class="w-full h-10 pl-10 pr-space-md bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm placeholder:text-outline/70 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="user-email" placeholder="nguyenminhtuan@gmail.com" required="" type="email" value="nguyenminhtuan@gmail.com">
+</div>
+</div>
+<div class="flex items-center justify-between gap-space-sm pt-space-xs">
+<button class="w-full h-10 bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-space-xs transition-colors shadow-sm" id="send-code-btn" onclick="triggerSendCode()" type="button">
+<span class="material-symbols-outlined text-[18px]">send</span>
+<span id="send-code-text" class="">Gửi mã xác nhận</span>
+</button>
+</div>
+</div>
+<!-- STEP 2 CONTENT -->
+<div class="flex flex-col gap-space-md transition-opacity duration-200 hidden" id="section-step-2">
+<!-- OTP Code Input -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface" for="otp-code">Mã xác thực OTP (6 chữ số)</label>
+<button class="font-label-xs text-label-xs text-primary hover:underline" id="resend-inline-btn" onclick="triggerSendCode()" type="button">Gửi lại mã</button>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-[20px] text-outline">pin</span>
+<input class="w-full h-10 pl-10 pr-space-md tracking-widest font-mono font-headline-sm text-headline-sm text-on-surface bg-surface-container-lowest rounded-lg shadow-sm placeholder:tracking-normal placeholder:font-body-md placeholder:text-outline/70 focus:outline-none focus:ring-2 focus:ring-primary transition-all" id="otp-code" maxlength="6" placeholder="Nhập 6 chữ số" type="text" value="849201">
+</div>
+</div>
+<!-- New Password Input -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface" for="new-password">Mật khẩu mới</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-[20px] text-outline">lock</span>
+<input class="w-full h-10 pl-10 pr-10 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm placeholder:text-outline/70 focus:outline-none focus:ring-2 focus:ring-primary transition-all" id="new-password" placeholder="Tối thiểu 8 ký tự" type="password">
+<button class="absolute right-3 text-outline hover:text-on-surface" onclick="togglePasswordVisibility('new-password', 'toggle-new-icon')" type="button">
+<span class="material-symbols-outlined text-[18px]" id="toggle-new-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Confirm New Password Input -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface" for="confirm-password">Xác nhận mật khẩu mới</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-[20px] text-outline">lock_clock</span>
+<input class="w-full h-10 pl-10 pr-10 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm placeholder:text-outline/70 focus:outline-none focus:ring-2 focus:ring-primary transition-all" id="confirm-password" placeholder="Nhập lại mật khẩu mới" type="password">
+<button class="absolute right-3 text-outline hover:text-on-surface" onclick="togglePasswordVisibility('confirm-password', 'toggle-confirm-icon')" type="button">
+<span class="material-symbols-outlined text-[18px]" id="toggle-confirm-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Submit Reset Password Button -->
+<button class="w-full h-10 mt-space-xs bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-space-xs transition-colors shadow-md" id="reset-submit-btn" type="submit">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span class="">Đặt lại mật khẩu</span>
+</button>
+</div>
+</form>
+<!-- Card Footer: Return to Login -->
+<div class="mt-space-lg pt-space-md flex flex-col items-center justify-center gap-space-sm">
+<a class="inline-flex items-center gap-space-xs text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md group" href="#">
+<span class="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+<span class="">Quay lại Đăng nhập</span>
+</a>
+</div>
+</div>
+<!-- Security & Support Sub-links under Card -->
+<div class="mt-space-md text-center flex items-center justify-center gap-space-md text-on-surface-variant font-label-sm text-label-sm">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">security</span> Mã hóa đầu cuối 256-bit
+      </span>
+<span class="">•</span>
+<a class="hover:text-primary transition-colors" href="#">Hotline kỹ thuật: 1900 8899</a>
+</div>
+</div>
+</div>
+<script>
+  let currentStep = 1;
+  let countdownTimer = null;
+
+  function switchStep(step) {
+    currentStep = step;
+    const step1Btn = document.getElementById('step-btn-1');
+    const step2Btn = document.getElementById('step-btn-2');
+    const badge1 = document.getElementById('badge-step-1');
+    const badge2 = document.getElementById('badge-step-2');
+    const label1 = document.getElementById('label-step-1');
+    const label2 = document.getElementById('label-step-2');
+
+    const sec1 = document.getElementById('section-step-1');
+    const sec2 = document.getElementById('section-step-2');
+
+    if (step === 1) {
+      step1Btn.className = 'flex-1 flex items-center justify-center gap-space-xs py-space-xs px-space-sm rounded-lg bg-surface-container-lowest shadow-sm text-primary transition-all';
+      step2Btn.className = 'flex-1 flex items-center justify-center gap-space-xs py-space-xs px-space-sm rounded-lg text-on-surface-variant hover:text-on-surface transition-all';
+      badge1.className = 'w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] font-label-xs flex items-center justify-center';
+      badge2.className = 'w-5 h-5 rounded-full bg-surface-variant text-on-surface-variant text-[11px] font-label-xs flex items-center justify-center';
+      
+      sec1.classList.remove('hidden');
+      sec2.classList.add('hidden');
+    } else {
+      step2Btn.className = 'flex-1 flex items-center justify-center gap-space-xs py-space-xs px-space-sm rounded-lg bg-surface-container-lowest shadow-sm text-primary transition-all';
+      step1Btn.className = 'flex-1 flex items-center justify-center gap-space-xs py-space-xs px-space-sm rounded-lg text-on-surface-variant hover:text-on-surface transition-all';
+      badge1.className = 'w-5 h-5 rounded-full bg-surface-variant text-on-surface-variant text-[11px] font-label-xs flex items-center justify-center';
+      badge2.className = 'w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] font-label-xs flex items-center justify-center';
+
+      sec1.classList.add('hidden');
+      sec2.classList.remove('hidden');
+    }
+  }
+
+  function triggerSendCode() {
+    const btnText = document.getElementById('send-code-text');
+    const resendBtn = document.getElementById('resend-inline-btn');
+    const emailVal = document.getElementById('user-email').value;
+
+    if (!emailVal) {
+      alert('Vui lòng nhập địa chỉ email hợp lệ.');
+      return;
+    }
+
+    let timeLeft = 60;
+    btnText.innerText = 'Đã gửi (60s)';
+    resendBtn.innerText = 'Gửi lại sau (60s)';
+    resendBtn.classList.add('pointer-events-none', 'opacity-50');
+
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+      timeLeft--;
+      if (timeLeft > 0) {
+        btnText.innerText = `Đã gửi (${timeLeft}s)`;
+        resendBtn.innerText = `Gửi lại sau (${timeLeft}s)`;
+      } else {
+        clearInterval(countdownTimer);
+        btnText.innerText = 'Gửi lại mã';
+        resendBtn.innerText = 'Gửi lại mã';
+        resendBtn.classList.remove('pointer-events-none', 'opacity-50');
+      }
+    }, 1000);
+
+    // Auto advance to step 2 after initial trigger
+    setTimeout(() => {
+      switchStep(2);
+    }, 400);
+  }
+
+  function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.innerText = 'visibility_off';
+    } else {
+      input.type = 'password';
+      icon.innerText = 'visibility';
+    }
+  }
+
+  function handlePrimaryAction() {
+    const newPass = document.getElementById('new-password').value;
+    const confirmPass = document.getElementById('confirm-password').value;
+    const otp = document.getElementById('otp-code').value;
+
+    if (!otp || otp.length < 6) {
+      alert('Vui lòng nhập đủ 6 chữ số mã xác nhận.');
+      return;
+    }
+    if (!newPass) {
+      alert('Vui lòng nhập mật khẩu mới.');
+      return;
+    }
+    if (newPass !== confirmPass) {
+      alert('Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.');
+      return;
+    }
+
+    alert('Mật khẩu của bạn đã được cập nhật thành công! Đang chuyển hướng về trang đăng nhập...');
+  }
+
+  // Initialize display
+  document.addEventListener('DOMContentLoaded', () => {
+    switchStep(1);
+  });
+  switchStep(1);
+</script></main><footer class="w-full py-space-md px-margin"><div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-space-sm font-label-sm text-label-sm text-on-surface-variant"><p class="">© 2026 Quản lý nhà trọ. Nền tảng quản lý nhà trọ và căn hộ dịch vụ chuyên nghiệp.</p><div class="flex items-center gap-space-lg"><a class="hover:text-primary transition-colors" href="#">Điều khoản dịch vụ</a><a class="hover:text-primary transition-colors" href="#">Chính sách bảo mật</a><a class="hover:text-primary transition-colors" href="#">Hỗ trợ kỹ thuật</a></div></div></footer>
+
+</body></html>

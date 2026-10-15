@@ -2,10 +2,12 @@ import { Request, Response } from 'express';
 import * as adminService from './service';
 import {
   paginationQuerySchema,
+  tenantListQuerySchema,
   userIdParamSchema,
   tenantIdParamSchema,
   planIdParamSchema,
   updatePlanSchema,
+  createPlanSchema,
   changeTenantPlanSchema,
 } from './schema';
 
@@ -26,7 +28,7 @@ export async function getUsers(req: Request, res: Response): Promise<void> {
 export async function lockUser(req: Request, res: Response): Promise<void> {
   try {
     const { id } = userIdParamSchema.parse(req.params);
-    const user = await adminService.lockUser(id);
+    const user = await adminService.lockUser(id, req.user!.userId);
     res.status(200).json({ message: 'Khóa tài khoản thành công', data: user });
   } catch (error: any) {
     if (error.name === 'ZodError') {
@@ -55,7 +57,7 @@ export async function unlockUser(req: Request, res: Response): Promise<void> {
 
 export async function getTenants(req: Request, res: Response): Promise<void> {
   try {
-    const query = paginationQuerySchema.parse(req.query);
+    const query = tenantListQuerySchema.parse(req.query);
     const result = await adminService.listTenants(query);
     res.status(200).json({ data: result });
   } catch (error: any) {
@@ -64,6 +66,21 @@ export async function getTenants(req: Request, res: Response): Promise<void> {
       return;
     }
     res.status(400).json({ message: error.message || 'Lỗi khi lấy danh sách Tenant' });
+  }
+}
+
+export async function getTenant(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = tenantIdParamSchema.parse(req.params);
+    const tenant = await adminService.getTenant(id);
+    res.status(200).json({ data: tenant });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({ message: 'ID Tenant không hợp lệ', errors: error.errors });
+      return;
+    }
+    const status = error.message?.includes('Không tìm thấy') ? 404 : 400;
+    res.status(status).json({ message: error.message || 'Lỗi khi lấy chi tiết Tenant' });
   }
 }
 
@@ -106,6 +123,20 @@ export async function getPlans(req: Request, res: Response): Promise<void> {
   }
 }
 
+export async function createPlan(req: Request, res: Response): Promise<void> {
+  try {
+    const input = createPlanSchema.parse(req.body);
+    const plan = await adminService.createPlan(input);
+    res.status(201).json({ message: 'Tạo gói thành công', data: plan });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({ message: 'Dữ liệu gói không hợp lệ', errors: error.errors });
+      return;
+    }
+    res.status(400).json({ message: error.message || 'Lỗi khi tạo gói' });
+  }
+}
+
 export async function updatePlan(req: Request, res: Response): Promise<void> {
   try {
     const { id } = planIdParamSchema.parse(req.params);
@@ -141,8 +172,12 @@ export async function changeTenantPlan(req: Request, res: Response): Promise<voi
   try {
     const { id } = tenantIdParamSchema.parse(req.params);
     const input = changeTenantPlanSchema.parse(req.body);
-    const tenant = await adminService.changeTenantPlan(id, input);
-    res.status(200).json({ message: 'Đổi gói và gia hạn thành công', data: tenant });
+    const result = await adminService.changeTenantPlan(id, input);
+    res.status(200).json({
+      message: 'Đổi gói và gia hạn thành công',
+      data: result.tenant,
+      warnings: result.warnings,
+    });
   } catch (error: any) {
     if (error.name === 'ZodError') {
       res.status(400).json({ message: 'Dữ liệu đổi gói không hợp lệ', errors: error.errors });

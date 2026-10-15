@@ -1,0 +1,396 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container-low": "#eff4ff", "surface-variant": "#d3e4fe", "on-surface": "#0b1c30", "surface-container-highest": "#d3e4fe", "background": "#f8f9ff", "on-secondary-fixed-variant": "#004c6e", "surface": "#f8f9ff", "on-primary-container": "#eeefff", "surface-container-high": "#dce9ff", "tertiary-container": "#bc4800", "primary-fixed": "#dbe1ff", "surface-container-lowest": "#ffffff", "inverse-on-surface": "#eaf1ff", "tertiary-fixed": "#ffdbcd", "on-secondary-fixed": "#001e2f", "outline-variant": "#c3c6d7", "secondary": "#006591", "on-secondary": "#ffffff", "on-error": "#ffffff", "outline": "#737686", "inverse-surface": "#213145", "error": "#ba1a1a", "on-error-container": "#93000a", "on-background": "#0b1c30", "on-tertiary": "#ffffff", "on-primary-fixed-variant": "#003ea8", "surface-tint": "#0053db", "on-primary-fixed": "#00174b", "primary-fixed-dim": "#b4c5ff", "on-tertiary-container": "#ffede6", "on-tertiary-fixed-variant": "#7d2d00", "secondary-fixed": "#c9e6ff", "inverse-primary": "#b4c5ff", "on-primary": "#ffffff", "secondary-fixed-dim": "#89ceff", "surface-bright": "#f8f9ff", "primary": "#004ac6", "error-container": "#ffdad6", "tertiary": "#943700", "secondary-container": "#39b8fd", "surface-container": "#e5eeff", "tertiary-fixed-dim": "#ffb596", "on-tertiary-fixed": "#360f00", "surface-dim": "#cbdbf5", "primary-container": "#2563eb", "on-surface-variant": "#434655", "on-secondary-container": "#004666" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "space-md": "1rem", "space-xs": "0.25rem", "margin": "2rem", "space-sm": "0.5rem", "gutter": "1.5rem", "space-lg": "1.5rem" }, "fontFamily": { "body-sm": ["Inter"], "body-md": ["Inter"], "body-md-medium": ["Inter"], "label-md": ["Inter"], "headline-md": ["Inter"], "headline-sm": ["Inter"], "body-lg": ["Inter"], "label-sm": ["Inter"], "label-xs": ["Inter"], "headline-lg": ["Inter"] }, "fontSize": { "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}], "body-md-medium": ["14px", {"lineHeight": "20px", "fontWeight": "500"}], "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}], "headline-md": ["18px", {"lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600"}], "headline-sm": ["16px", {"lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "600"}], "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}], "label-xs": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600"}], "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-screen w-60 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col"><div class="h-16 px-space-lg flex items-center gap-space-sm"><div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[20px]">apartment</span></div><div class="flex flex-col min-w-0"><span class="font-headline-sm text-headline-sm text-primary font-bold truncate leading-none">Quản lý nhà trọ</span><span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider mt-space-xs">Hệ thống SaaS</span></div></div><div class="px-space-md pt-space-md"><div class="px-space-sm pb-space-xs"><span class="font-label-xs text-label-xs text-outline font-semibold uppercase tracking-wider">Phân hệ điều hành</span></div><nav class="flex flex-col gap-space-xs mt-space-xs" data-active-classes="bg-surface-container text-primary font-semibold rounded-lg"><a class="flex items-center gap-space-md h-10 px-space-md rounded-lg font-body-md text-body-md text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="tenant-goi-dich-vu" href="#"><span class="material-symbols-outlined text-[20px]">domain_add</span><span class="">Tenant &amp; Gói dịch vụ</span></a><a class="flex items-center gap-space-md h-10 px-space-md rounded-lg font-body-md text-body-md bg-surface-container text-primary font-semibold shadow-sm" data-path="nguoi-dung" href="#"><span class="material-symbols-outlined text-[20px]">manage_accounts</span><span class="">Người dùng</span></a><a class="flex items-center gap-space-md h-10 px-space-md rounded-lg font-body-md text-body-md text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="ho-so-ca-nhan" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span class="">Hồ sơ cá nhân</span></a></nav></div></div><div class="p-space-md"><div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-sm"><div class="flex items-center justify-between"><span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-label-xs text-label-xs bg-surface-container text-secondary font-medium"><span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>Hệ thống online</span><span class="material-symbols-outlined text-outline text-[16px]">verified_user</span></div><div class="flex flex-col"><span class="font-label-xs text-label-xs text-on-surface-variant">Hotline hỗ trợ kỹ thuật 24/7</span><a class="font-label-md text-label-md text-primary font-semibold hover:underline mt-0.5" href="tel:19006868">1900 6868</a></div></div></div></aside><div class="pl-60 flex flex-col min-h-screen"><header class="fixed top-0 left-60 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full bg-surface-container text-primary font-label-sm text-label-sm"><span class="material-symbols-outlined text-[16px]">admin_panel_settings</span><span class="">Quản trị hệ thống</span></div></div><div class="flex items-center gap-space-lg"><div class="relative"><button aria-label="Thông báo" class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span></button><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></div><div class="h-7 w-px bg-surface-container"></div><div class="flex items-center gap-space-sm"><div class="flex flex-col text-right"><span class="font-body-md-medium text-body-md-medium text-on-surface leading-snug">Lê Hoàng Nam</span><span class="font-label-xs text-label-xs text-on-surface-variant">Quản trị viên hệ thống</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 px-space-xl pb-space-xl bg-background flex-1"><div class="flex flex-col w-full">
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const currentNav = document.querySelector('aside a[data-path="nguoi-dung"]');
+      if (currentNav) {
+        document.querySelectorAll('aside nav a').forEach(el => {
+          el.className = "flex items-center gap-space-md h-10 px-space-md rounded-lg font-body-md text-body-md text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors";
+        });
+        currentNav.className = "flex items-center gap-space-md h-10 px-space-md rounded-lg font-body-md text-body-md bg-surface-container text-primary font-semibold shadow-sm";
+      }
+    });
+  </script>
+<!-- Breadcrumbs & Header Section -->
+<div class="flex flex-col gap-space-sm mb-space-lg">
+<nav class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="hover:text-primary transition-colors cursor-pointer">Quản trị hệ thống</span>
+<span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Quản lý người dùng</span>
+<span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
+<span class="text-on-surface font-medium">Danh sách tài khoản</span>
+</nav>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md pt-1">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">Quản lý người dùng</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Quản lý phân quyền, tài khoản Chủ trọ và Khách thuê trên toàn hệ thống</p>
+</div>
+<div class="flex items-center gap-space-sm self-start md:self-auto shrink-0">
+
+<button class="h-10 px-space-md rounded-lg bg-primary text-on-primary font-label-md text-label-md shadow-sm hover:bg-primary-container transition-all flex items-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+<span class="">Tạo tài khoản mới</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Overview KPI Chips -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md mb-space-lg">
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Tổng tài khoản</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold mt-1">142</span>
+<span class="font-body-sm text-body-sm text-secondary flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>+12 tháng này
+        </span>
+</div>
+<div class="w-11 h-11 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">group</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Chủ trọ (Landlord)</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold mt-1">38</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">26 cơ sở vận hành</span>
+</div>
+<div class="w-11 h-11 rounded-xl bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">real_estate_agent</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Khách thuê (Renter)</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold mt-1">104</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Đã xác minh CCCD/VNeID</span>
+</div>
+<div class="w-11 h-11 rounded-xl bg-secondary-fixed flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">person_pin_circle</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider font-semibold">Tài khoản bị khóa</span>
+<span class="font-headline-lg text-headline-lg text-error font-bold mt-1">4</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Cần xác minh hồ sơ</span>
+</div>
+<div class="w-11 h-11 rounded-xl bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[24px]">lock_person</span>
+</div>
+</div>
+</div>
+<!-- Search & Filters Container -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm mb-space-md">
+<div class="flex flex-col lg:flex-row gap-space-md items-stretch lg:items-center justify-between">
+<!-- Search Input -->
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">search</span>
+<input class="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-container-low font-body-md text-body-md text-on-surface placeholder:text-outline focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 outline-none transition-all" placeholder="Tìm theo tên hoặc email…" type="text">
+</div>
+<!-- Filters Group -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- Vai trò Filter -->
+<div class="relative min-w-[150px]">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md outline-none cursor-pointer appearance-none hover:bg-surface-container transition-colors">
+<option value="">Tất cả vai trò</option>
+<option value="landlord">Chủ trọ (Landlord)</option>
+<option value="renter">Khách thuê (Renter)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">expand_more</span>
+</div>
+<!-- Trạng thái Filter -->
+<div class="relative min-w-[160px]">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md outline-none cursor-pointer appearance-none hover:bg-surface-container transition-colors">
+<option value="">Tất cả trạng thái</option>
+<option value="active">Đang hoạt động</option>
+<option value="locked">Bị khóa</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">expand_more</span>
+</div>
+<!-- Tenant Filter -->
+<div class="relative min-w-[180px]">
+<select class="w-full h-10 pl-3 pr-8 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md outline-none cursor-pointer appearance-none hover:bg-surface-container transition-colors">
+<option value="">Tất cả Tenant</option>
+<option value="hoa-mai">Nhà trọ Hoa Mai</option>
+<option value="sao-mai">Nhà trọ Sao Mai</option>
+<option value="an-phu">Nhà trọ An Phú</option>
+<option value="binh-an">Nhà trọ Bình An</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">expand_more</span>
+</div>
+<!-- Reset Button -->
+<button class="w-10 h-10 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors" title="Đặt lại bộ lọc" type="button">
+<span class="material-symbols-outlined text-[20px]">restart_alt</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Data Table Card -->
+<div class="rounded-xl bg-surface-container-lowest shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant h-11">
+<th class="px-space-md font-label-xs text-label-xs uppercase tracking-wider font-semibold">Họ và tên</th>
+<th class="px-space-md font-label-xs text-label-xs uppercase tracking-wider font-semibold">Email</th>
+<th class="px-space-md font-label-xs text-label-xs uppercase tracking-wider font-semibold">Vai trò</th>
+<th class="px-space-md font-label-xs text-label-xs uppercase tracking-wider font-semibold">Tenant</th>
+<th class="px-space-md font-label-xs text-label-xs uppercase tracking-wider font-semibold">Trạng thái</th>
+<th class="px-space-md font-label-xs text-label-xs uppercase tracking-wider font-semibold text-right">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-on-surface font-body-md text-body-md">
+<!-- Row 1 -->
+<tr class="h-16 hover:bg-surface-container-low/60 transition-colors">
+<td class="px-space-md py-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm" data-alt="A polite Vietnamese male landlord in his late 30s wearing a collared blue shirt, bright lighting and neat office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCx6plgTCrZYM58rOrcNf40hwTDfolfc6QepQ7Vox8W2pQfurY_T6CHbpTQHrS2UYtA1LRFKrXFUbaWOvQMZ6XpHlOrpW5GI2Jak15mon4p_Z2tr6jEUaZCsTUQ9859lkzd5nPfe0a2luXtvmC713CR_DuA--fF6QRVR2Oi0-saO40ai09lj_nTlp_s0TqET7rRWbWa9MUQ_aPisifiSywrOPf-_EeagA0meECBzQ">
+<div class="flex flex-col min-w-0">
+<span class="font-body-md-medium text-body-md-medium text-on-surface font-semibold truncate">Nguyễn Minh Tuấn</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Mã: USR-8402</span>
+</div>
+</div>
+</td>
+<td class="px-space-md py-space-sm text-on-surface-variant font-mono text-body-sm">
+              tuan.nguyen@nhatrohoamai.vn
+            </td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-primary-fixed text-primary font-medium">
+<span class="material-symbols-outlined text-[14px]">apartment</span>
+                Chủ trọ
+              </span>
+</td>
+<td class="px-space-md py-space-sm font-body-md-medium text-on-surface">
+              Nhà trọ Hoa Mai
+            </td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container text-secondary font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Hoạt động
+              </span>
+</td>
+<td class="px-space-md py-space-sm text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-error hover:bg-error-container/40 font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="">Khóa</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-lg text-primary hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span class="">Chi tiết</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="h-16 hover:bg-surface-container-low/60 transition-colors">
+<td class="px-space-md py-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm" data-alt="Professional Vietnamese property investor in mid 40s smiling warmly, natural daylight modern studio portrait." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6mdSgt4V_2z5Uy8LpdG_FzWlTe5alP1D4rKViF1hJ30qwaeI-OEHPeYnrdGr6h7pMLs3v5p7lV5VMuwIlJHepWeczJuyP29FKtRvrfPyisk09lRbpInx6CetaC0XwMK5snu9oIW7pV9h0g1UgmLv_1i1dCc_4cb7I5WygMfVueB2_tyPk0rIlLLwulZKAuWoPyC6CJUJO1al5a2Lx5DFzSGf8CHHC9vpomPskBw">
+<div class="flex flex-col min-w-0">
+<span class="font-body-md-medium text-body-md-medium text-on-surface font-semibold truncate">Trần Đình Trọng</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Mã: USR-7911</span>
+</div>
+</div>
+</td>
+<td class="px-space-md py-space-sm text-on-surface-variant font-mono text-body-sm">
+              trong.tran@gmail.com
+            </td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-primary-fixed text-primary font-medium">
+<span class="material-symbols-outlined text-[14px]">apartment</span>
+                Chủ trọ
+              </span>
+</td>
+<td class="px-space-md py-space-sm font-body-md-medium text-on-surface">
+              Nhà trọ Sao Mai
+            </td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container text-secondary font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Hoạt động
+              </span>
+</td>
+<td class="px-space-md py-space-sm text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-error hover:bg-error-container/40 font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="">Khóa</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-lg text-primary hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span class="">Chi tiết</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 (Bị khóa) -->
+<tr class="h-16 hover:bg-surface-container-low/60 transition-colors bg-surface-container-low/20">
+<td class="px-space-md py-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-semibold font-body-md shrink-0 shadow-sm">
+                  HN
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md-medium text-body-md-medium text-on-surface font-semibold truncate">Lê Hoàng Nam</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Mã: USR-6034</span>
+</div>
+</div>
+</td>
+<td class="px-space-md py-space-sm text-on-surface-variant font-mono text-body-sm">
+              nam.le@anphugroup.vn
+            </td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-primary-fixed text-primary font-medium">
+<span class="material-symbols-outlined text-[14px]">apartment</span>
+                Chủ trọ
+              </span>
+</td>
+<td class="px-space-md py-space-sm font-body-md-medium text-on-surface">
+              Nhà trọ An Phú
+            </td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-error-container text-error font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                Bị khóa
+              </span>
+</td>
+<td class="px-space-md py-space-sm text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-secondary hover:bg-secondary-fixed/40 font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">lock_open</span>
+<span class="">Mở khóa</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-lg text-primary hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span class="">Chi tiết</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="h-16 hover:bg-surface-container-low/60 transition-colors">
+<td class="px-space-md py-space-sm">
+<div class="flex items-center gap-space-sm">
+<img class="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm" data-alt="Young Vietnamese female renter in her twenties with pleasant expression, casual modern attire, soft daylight background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPWDBGuZ08J-e7N_kgRyJ2iV_okzraLcRHRU9bFqaFaShycOlta3_CPTNpqnMkmpg-RMaCj1zGPUrrnrH9ttWklszxqsGrCU_BHEgzKvWR6osttF3cFQ-ssrS1bk-6HdtbcSstDvrBwZCy-eiHofrDpM2k--RLjh2z5vwXJlB2fgxa3TrVrW4mRelFGu2JMKprOng9dsslATU9FGdSZXAQkY7hhftHZ5vVRmXfnQ">
+<div class="flex flex-col min-w-0">
+<span class="font-body-md-medium text-body-md-medium text-on-surface font-semibold truncate">Nguyễn Thị Mai Lan</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Mã: USR-9122</span>
+</div>
+</div>
+</td>
+<td class="px-space-md py-space-sm text-on-surface-variant font-mono text-body-sm">
+              mailan.nguyen98@gmail.com
+            </td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed-variant font-medium">
+<span class="material-symbols-outlined text-[14px]">badge</span>
+                Khách thuê
+              </span>
+</td>
+<td class="px-space-md py-space-sm">
+<div class="flex flex-col">
+<span class="font-body-md-medium text-on-surface">Nhà trọ Hoa Mai</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Phòng 102</span>
+</div>
+</td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container text-secondary font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Hoạt động
+              </span>
+</td>
+<td class="px-space-md py-space-sm text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-error hover:bg-error-container/40 font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="">Khóa</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-lg text-primary hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span class="">Chi tiết</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="h-16 hover:bg-surface-container-low/60 transition-colors">
+<td class="px-space-md py-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed text-secondary flex items-center justify-center font-semibold font-body-md shrink-0 shadow-sm">
+                  TT
+                </div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md-medium text-body-md-medium text-on-surface font-semibold truncate">Đỗ Thùy Trang</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Mã: USR-5231</span>
+</div>
+</div>
+</td>
+<td class="px-space-md py-space-sm text-on-surface-variant font-mono text-body-sm">
+              trang.dothuy@outlook.com
+            </td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed-variant font-medium">
+<span class="material-symbols-outlined text-[14px]">badge</span>
+                Khách thuê
+              </span>
+</td>
+<td class="px-space-md py-space-sm">
+<div class="flex flex-col">
+<span class="font-body-md-medium text-on-surface">Nhà trọ Bình An</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Phòng 205</span>
+</div>
+</td>
+<td class="px-space-md py-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-surface-container text-secondary font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                Hoạt động
+              </span>
+</td>
+<td class="px-space-md py-space-sm text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-lg text-error hover:bg-error-container/40 font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="">Khóa</span>
+</button>
+<button class="px-2.5 py-1.5 rounded-lg text-primary hover:bg-surface-container font-label-sm text-label-sm transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span class="">Chi tiết</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="p-space-md bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<span class="font-body-sm text-body-sm text-on-surface-variant">
+        Hiển thị <span class="font-semibold text-on-surface">1 - 5</span> trong số <span class="font-semibold text-on-surface">142</span> người dùng
+      </span>
+<div class="flex items-center gap-1">
+<button class="w-9 h-9 rounded-lg flex items-center justify-center text-outline cursor-not-allowed transition-colors" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-9 h-9 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm font-semibold flex items-center justify-center shadow-sm" type="button">
+          1
+        </button>
+<button class="w-9 h-9 rounded-lg text-on-surface-variant hover:bg-surface-container-low font-label-sm text-label-sm transition-colors flex items-center justify-center" type="button">
+          2
+        </button>
+<button class="w-9 h-9 rounded-lg text-on-surface-variant hover:bg-surface-container-low font-label-sm text-label-sm transition-colors flex items-center justify-center" type="button">
+          3
+        </button>
+<span class="w-7 h-9 flex items-center justify-center text-outline font-label-sm text-label-sm">...</span>
+<button class="w-9 h-9 rounded-lg text-on-surface-variant hover:bg-surface-container-low font-label-sm text-label-sm transition-colors flex items-center justify-center" type="button">
+          29
+        </button>
+<button class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div><footer class="mt-space-lg pt-space-md border-t border-surface-container-high/60 flex flex-col sm:flex-row items-center justify-between text-on-surface-variant font-body-sm text-body-sm gap-space-xs"><p class="">© 2026 Quản lý nhà trọ. Tất cả các quyền được bảo lưu.</p><div class="flex items-center gap-space-md"><span class="hover:text-primary transition-colors cursor-pointer">Điều khoản sử dụng</span><span class="hover:text-primary transition-colors cursor-pointer">Chính sách bảo mật</span><span class="hover:text-primary transition-colors cursor-pointer">Trợ giúp</span></div></footer>
+</div></main></div>
+
+</body></html>

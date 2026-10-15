@@ -28,9 +28,3 @@ Thumbs.db
 # Testing & Coverage
 coverage/
 
-# AI Context & Local Documentation
-.agents/
-docs/
-AGENTS.md
-Agent.md
-
