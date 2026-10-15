@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import authRoutes from './modules/auth/routes';
 import adminRoutes from './modules/admin/routes';
+import propertyRoutes from './modules/properties/routes';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -41,6 +42,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 // Đăng ký các module routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/properties', propertyRoutes);
 
 // 404 cho mọi route không khớp
 app.use(notFoundHandler);
