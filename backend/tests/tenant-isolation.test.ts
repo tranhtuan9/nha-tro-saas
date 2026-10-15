@@ -449,4 +449,70 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
     const allMeters = await dbLandlordA.meterReading.findMany();
     expect(allMeters.length).toBe(1);
   });
+
+  it('9. Renter KHÔNG THỂ INSERT/UPDATE/DELETE dữ liệu ngoài phạm vi (RESTRICTIVE FOR ALL)', async () => {
+    const dbRenterA1 = getTenantDb({
+      tenantId: tenantAId,
+      userId: renterA1Id,
+      role: 'RENTER',
+    });
+
+    // INSERT: Renter không thể tạo phòng mới
+    await expect(
+      dbRenterA1.room.create({
+        data: {
+          tenantId: tenantAId,
+          propertyId: propertyAId,
+          roomCode: 'P999',
+          areaM2: 20,
+          basePrice: 2000000,
+        },
+      })
+    ).rejects.toThrow();
+
+    // UPDATE: Renter không thể sửa phòng của người khác
+    await expect(
+      dbRenterA1.room.update({
+        where: { id: roomA2Id },
+        data: { basePrice: 9999999 },
+      })
+    ).rejects.toThrow();
+
+    // DELETE: Renter không thể xóa phòng của người khác
+    await expect(
+      dbRenterA1.room.delete({
+        where: { id: roomA2Id },
+      })
+    ).rejects.toThrow();
+
+    // INSERT: Renter không thể tạo hợp đồng
+    await expect(
+      dbRenterA1.contract.create({
+        data: {
+          tenantId: tenantAId,
+          roomId: roomAId,
+          renterId: renterA1Id,
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          monthlyRent: 3000000,
+          status: ContractStatus.ACTIVE,
+        },
+      })
+    ).rejects.toThrow();
+
+    // UPDATE: Renter không thể sửa hợp đồng của người khác
+    await expect(
+      dbRenterA1.contract.update({
+        where: { id: contractA2Id },
+        data: { monthlyRent: 1 },
+      })
+    ).rejects.toThrow();
+
+    // DELETE: Renter không thể xóa hợp đồng của người khác
+    await expect(
+      dbRenterA1.contract.delete({
+        where: { id: contractA2Id },
+      })
+    ).rejects.toThrow();
+  });
 });

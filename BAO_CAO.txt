@@ -1,0 +1,172 @@
+=== BÁO CÁO TỔNG KẾT DỰ ÁN QUẢN LÝ NHÀ TRỌ SAAS ===
+
+────────────────────────────────────────
+1. NỀN TẢNG CSDL (PostgreSQL + RLS)
+────────────────────────────────────────
+Schema: 15 bảng
+  Nền tảng: users, tenants, plans, password_reset_tokens
+  Danh mục: properties, rooms, contracts, meter_readings, services
+  Tài chính: invoices, invoice_line_items, payments
+  Khác: notifications, audit_logs, support_requests
+
+Row-Level Security:
+  - Mọi bảng có tenant_id: ENABLE + FORCE RLS
+  - Policy PERMISSIVE (tenant_isolation_policy): cô lập giữa các Tenant
+  - Policy RESTRICTIVE (renter_restrictive_policy): Renter chỉ thấy dữ liệu
+    liên quan đến hợp đồng của mình (11 bảng: users, rooms, properties, services,
+    contracts, meter_readings, invoices, invoice_line_items, payments,
+    support_requests, notifications)
+
+3 vai trò CSDL:
+  - owner: chỉ chạy migration/seed (BYPASSRLS)
+  - app_user: nghiệp vụ, bị RLS cưỡng chế
+  - app_system: auth/webhook/seed, BYPASSRLS
+
+Partial unique indexes:
+  - uq_contract_active_room: 1 hợp đồng ACTIVE/phòng
+  - uq_room_property_code, uq_service_property_name, uq_meter_room_month
+
+────────────────────────────────────────
+2. CÁC MIGRATION (4 file)
+────────────────────────────────────────
+  20261014091055_init_multi_tenant_schema
+    - Tạo toàn bộ bảng, enum, index, foreign key
+    - RLS PERMISSIVE cơ bản cho mọi bảng
+    - GRANT/REVOKE quyền cho app_user (audit_logs append-only, plans read-only)
+
+  20261014205500_add_renter_rls_policies
+    - Thêm logic Renter vào 6 bảng (PERMISSIVE):
+      contracts, invoices, invoice_line_items, payments, support_requests, notifications
+
+  20261015000000_renter_rls_restrictive (BỎ)
+    - Thử chuyển sang RESTRICTIVE thuần — WITH CHECK quá nghiêm, chặn Landlord INSERT
+
+  20261015000001_renter_rls_fix (ĐÃ DÙNG)
+    - DROP và tạo lại: PERMISSIVE (tenant_isolation_policy) + RESTRICTIVE
+      (renter_restrictive_policy) trên 11 bảng
+    - renter_restrictive_policy: AS RESTRICTIVE FOR ALL (không phải FOR SELECT)
+      Với FOR ALL, PostgreSQL áp dụng USING cho SELECT/UPDATE/DELETE và
+      WITH CHECK (mặc định dùng lại USING) cho INSERT.
+      → Renter bị chặn cả INSERT/UPDATE/DELETE ngoài phạm vi hợp đồng
+    - Landlord: thấy toàn bộ Tenant, INSERT/UPDATE/DELETE bình thường
+
+────────────────────────────────────────
+3. MODULE AUTH (UC01, UC02, UC03, UC08-11, UC24-26)
+────────────────────────────────────────
+  Đăng ký Landlord (UC08):
+    - Tạo Tenant (gói mặc định + hạn dùng thử) + User LANDLORD trong MỘT transaction
+    - Bắt lỗi P2002 khi email trùng đồng thời
+
+  Đăng nhập (UC01, UC09, UC24):
+    - Kiểm tra theo thứ tự: mật khẩu → tài khoản bị khóa → Tenant tạo ngưng (bỏ qua Admin)
+    - Token JWT chứa userId, role, tenantId
+
+  Middleware auth (src/middleware/auth.ts):
+    - authenticateJwt: verify JWT → query DB lấy role, tenantId thực tế → gán req.user
+      (không tin token)
+    - requireRole: RBAC theo vai trò
+
+  TenantGuard (src/middleware/tenantGuard.ts):
+    - requireActiveSubscription: chặn TẠO MỚI khi Tenant hết hạn (Luật 12)
+      Admin bị bỏ qua; Tenant hết hạn vẫn đăng nhập và xem được
+    - checkResourceLimit: kiểm tra maxProperties/maxRooms từ Plan
+      Chặn tạo Property/Room khi vượt giới hạn gói
+
+  Quên mật khẩu (UC02, UC10, UC25):
+    - crypto.randomBytes(32), băm sha256, thông báo chung chống user enumeration
+    - Token cũ bị vô hiệu khi có yêu cầu mới
+
+  Bảo mật:
+    - Không bao giờ trả passwordHash
+    - Tránh timing attack khi email không tồn tại
+
+────────────────────────────────────────
+4. MODULE ADMIN (UC04-07)
+────────────────────────────────────────
+  Tất cả route: authenticateJwt + requireRole(ADMIN) + prismaSystem (BYPASSRLS)
+
+  UC04 — GET /api/admin/users
+    - Phân trang (page, pageSize), filter: role, status, tenantId, search (tên/email)
+    - PATCH /api/admin/users/:id/lock: khóa user (không khóa chính mình, không khóa Admin)
+    - PATCH /api/admin/users/:id/unlock: mở khóa
+    - Token cũ của user bị khóa bị từ chối ngay (middleware auth kiểm tra DB)
+
+  UC05 — GET /api/admin/tenants
+    - Phân trang, filter: status, search, subscriptionStatus (active/expiring_soon/expired)
+    - GET /api/admin/tenants/:id: chi tiết + counts (users, properties, rooms)
+    - PATCH /api/admin/tenants/:id/suspend: tạm ngưng (token Landlord/Renter bị 403 ngay)
+    - PATCH /api/admin/tenants/:id/activate: kích hoạt lại
+    - Không có API tạo Tenant thủ công
+
+  UC06 — GET /api/admin/plans
+    - POST /api/admin/plans: tạo gói (maxProperties, maxRooms, price, durationDays)
+    - PATCH /api/admin/plans/:id: sửa gói
+    - PATCH /api/admin/plans/:id/deactivate: ẩn gói (is_active=false, không xóa cứng)
+      Từ chối: gói mặc định (DEFAULT_PLAN_NAME), gói đang có Tenant sử dụng
+
+  UC07 — PATCH /api/admin/tenants/:id/plan
+    - Đổi gói + extendDays (tính từ subscriptionEnd hiện tại hoặc now)
+    - Hoặc đặt subscriptionEnd trực tiếp
+    - Từ chối gói đã ẩn
+    - Nếu giới hạn gói mới nhỏ hơn số lượng hiện có: vẫn cho đổi, trả warnings[]
+
+  Bảo mật:
+    - Response không chứa passwordHash, nationalId
+    - Select tường minh (không dùng include cho user)
+
+────────────────────────────────────────
+5. KIỂM THỬ (51 test, PostgreSQL thật)
+────────────────────────────────────────
+  tenant-isolation.test.ts (9 test):
+    - Cô lập Tenant A/B (SELECT, INSERT, UPDATE, DELETE)
+    - Chưa set app.current_tenant → không trả dòng nào
+    - audit_logs append-only (REVOKE UPDATE/DELETE)
+    - Renter A1 không đọc được hợp đồng của Renter A2
+    - Renter RLS RESTRICTIVE: users, rooms, properties, meter_readings
+    - Landlord vẫn đọc được toàn bộ
+
+  auth.test.ts (14 test):
+    - Đăng ký thành công (transaction, không trả passwordHash)
+    - Từ chối email trùng, dữ liệu không hợp lệ (Zod)
+    - Đăng nhập: thành công, sai mật khẩu, khóa tài khoản, Tenant tạo ngưng, Admin
+    - Hồ sơ: lấy, cập nhật, đổi mật khẩu
+    - Quên/đặt lại mật khẩu: token dùng 1 lần
+
+  admin.test.ts (28 test):
+    - RBAC: Landlord/Renter → 403 mọi route admin
+    - UC04: list/filter, khóa/mở khóa, token bị 403 ngay, không khóa chính mình
+    - UC05: list/filter, chi tiết, suspend → token Landlord bị 403 ngay, activate
+    - UC06: tạo, sửa, ẩn gói (từ chối gói mặc định/gói đang dùng)
+    - UC07: đổi gói, từ chối gói ẩn, warnings khi vượt giới hạn
+    - Response không chứa passwordHash/nationalId
+
+────────────────────────────────────────
+6. CẤU TRÚC THƯ MỤC
+────────────────────────────────────────
+  backend/
+    src/
+      middleware/
+        auth.ts         — authenticateJwt, requireRole
+        tenantGuard.ts  — requireActiveSubscription, checkResourceLimit
+      lib/
+        db.ts           — Prisma clients (system, owner, appUser, getTenantDb)
+        jwt.ts          — signToken, verifyToken
+        mail.ts         — sendMail, lastSentEmailForTest
+      modules/
+        auth/           — routes, controller, service, schema
+        admin/          — routes, controller, service, schema
+      app.ts            — Express app, đăng ký routes
+    prisma/
+      schema.prisma     — 15 models, enum, @@map snake_case
+      migrations/       — 4 migrations
+      seed.ts           — seed plans + admin user
+    tests/
+      tenant-isolation.test.ts
+      auth.test.ts
+      admin.test.ts
+    package.json        — vitest, supertest, prisma, zod
+  docs/
+    business-rules.md
+    schema.dbml
+    DESIGN.md, UI/
+  docker-compose.yml    — PostgreSQL
