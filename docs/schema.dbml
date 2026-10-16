@@ -110,6 +110,7 @@ Table Contract {
   deposit decimal(12,0) [not null, default: 0]
   terms text
   status contract_status [not null, default: 'ACTIVE']
+  terminated_reason text [note: 'Lý do chấm dứt (UC15 PATCH /terminate); NULL với hợp đồng kết thúc bình thường']
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
   indexes { tenant_id  room_id  renter_id }

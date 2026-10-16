@@ -237,6 +237,7 @@ model Contract {
   deposit     Decimal        @default(0) @db.Decimal(12, 0)
   terms       String?        @db.Text
   status      ContractStatus @default(ACTIVE)
+  terminatedReason String?   @map("terminated_reason") @db.Text
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
