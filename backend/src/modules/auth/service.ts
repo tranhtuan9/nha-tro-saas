@@ -150,7 +150,7 @@ export async function login(input: LoginInput) {
     tenantId: user.tenantId,
   });
 
-  const { passwordHash, ...safeUser } = user;
+  const { passwordHash: _passwordHash, ...safeUser } = user;
 
   return {
     token,

@@ -55,7 +55,7 @@ export async function requireActiveSubscription(
     }
 
     next();
-  } catch (error) {
+  } catch {
     next(ApiError.internal('INTERNAL_ERROR', 'Lỗi kiểm tra hạn dịch vụ'));
   }
 }

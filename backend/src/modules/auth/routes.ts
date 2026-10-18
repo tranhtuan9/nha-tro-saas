@@ -5,7 +5,7 @@ import { authenticateJwt } from '../../middleware/auth';
 
 const router = Router();
 
-// Rate limiter chống Brute Force đăng nhập (tối đa 5 lần thử sai / 15 phút)
+// Rate limiter chống Brute Force đăng nhập (tối đa 10 request / 15 phút)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10, // cho phép tối đa 10 request login trong 15 phút

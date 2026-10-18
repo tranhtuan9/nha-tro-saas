@@ -103,7 +103,7 @@ export function getTenantDb(context: TenantContext | string) {
     },
     query: {
       $allModels: {
-        async $allOperations({ model, operation, args, query }) {
+        async $allOperations({ model, operation, args }) {
           return prismaAppUser.$transaction(async (tx) => {
             await setSessionContext(tx, context);
             return (tx as any)[model][operation](args);

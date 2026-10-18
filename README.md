@@ -66,9 +66,10 @@ npm run seed
 
 ```powershell
 cd backend
+npm run dev
+# hoặc chạy production:
 npm run build
-node dist/index.js
-# hoặc chạy dev với tsx
+npm start
 ```
 
 Health check: `GET http://localhost:4000/api/health`
@@ -91,7 +92,7 @@ npm test
 | `/api/auth/login` | POST | Đăng nhập (rate limit 10 lần / 15 phút) |
 | `/api/auth/forgot-password` | POST | Gửi email đặt lại mật khẩu (rate limit 5 lần / 1 giờ) |
 | `/api/auth/reset-password` | POST | Đặt lại mật khẩu bằng token |
-| `/api/auth/profile` | GET/PATCH | Xem/sửa hồ sơ |
+| `/api/auth/me` | GET/PUT | Xem/sửa hồ sơ |
 | `/api/auth/change-password` | POST | Đổi mật khẩu |
 | `/api/admin/users` | GET | Danh sách người dùng |
 | `/api/admin/users/:id/lock` `/unlock` | PATCH | Khóa/mở khóa tài khoản (idempotent) |

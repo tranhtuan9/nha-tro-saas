@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend (lint + test)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: nha_tro
+          POSTGRES_USER: nha_tro_owner
+          POSTGRES_PASSWORD: change_me
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nha_tro_owner -d nha_tro"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      FRONTEND_URL: http://localhost:3000
+      DATABASE_URL: postgresql://nha_tro_owner:change_me@localhost:5432/nha_tro?schema=public
+      APP_DATABASE_URL: postgresql://app_user:change_me@localhost:5432/nha_tro?schema=public
+      SYSTEM_DATABASE_URL: postgresql://app_system:change_me@localhost:5432/nha_tro?schema=public
+      JWT_SECRET: ci_test_secret_change_me
+      JWT_EXPIRES_IN: 1h
+      BCRYPT_ROUNDS: 4
+      TRIAL_DAYS: 14
+      SEED_ADMIN_EMAIL: admin@example.com
+      SEED_ADMIN_PASSWORD: change_me
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create database roles (app_user, app_system)
+        working-directory: .
+        run: |
+          command -v psql >/dev/null 2>&1 || sudo apt-get install -y postgresql-client
+          PGPASSWORD=change_me psql -h localhost -U nha_tro_owner -d nha_tro -v ON_ERROR_STOP=1 -f docker/init-db.sql
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed initial data
+        run: npm run seed
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test

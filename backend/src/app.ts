@@ -56,12 +56,4 @@ app.use(notFoundHandler);
 // Xử lý lỗi toàn cục (đặt cuối cùng)
 app.use(errorHandler);
 
-// Khởi chạy server nếu file được chạy trực tiếp
-if (require.main === module) {
-  const PORT = process.env.PORT || 4000;
-  app.listen(PORT, () => {
-    console.log(`Server đang chạy tại http://localhost:${PORT}`);
-  });
-}
-
 export default app;

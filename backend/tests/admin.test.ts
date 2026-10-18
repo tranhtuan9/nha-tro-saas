@@ -137,8 +137,7 @@ describe('Kiểm thử Module Admin (UC04, UC05, UC06, UC07)', () => {
       ];
 
       for (const route of routes) {
-        const res = await request(app)
-          [route.method as 'get'](route.path)
+        const res = await request(app)[route.method as 'get'](route.path)
           .set('Authorization', `Bearer ${landlordToken}`);
         expect(res.status).toBe(403);
       }
@@ -152,8 +151,7 @@ describe('Kiểm thử Module Admin (UC04, UC05, UC06, UC07)', () => {
       ];
 
       for (const route of routes) {
-        const res = await request(app)
-          [route.method as 'get'](route.path)
+        const res = await request(app)[route.method as 'get'](route.path)
           .set('Authorization', `Bearer ${renterToken}`);
         expect(res.status).toBe(403);
       }

@@ -32,7 +32,7 @@ export async function authenticateJwt(
   let payload: JwtPayload;
   try {
     payload = verifyToken(token);
-  } catch (err) {
+  } catch {
     next(ApiError.unauthorized('INVALID_TOKEN', 'Token không hợp lệ hoặc đã hết hạn'));
     return;
   }
@@ -69,7 +69,7 @@ export async function authenticateJwt(
 
     req.user = payload;
     next();
-  } catch (error) {
+  } catch {
     next(ApiError.internal('INTERNAL_ERROR', 'Lỗi xác thực hệ thống'));
   }
 }
