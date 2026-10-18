@@ -121,19 +121,20 @@ export async function createRenter(context: TenantContext, input: CreateRenterIn
 
   const inviteHours = parseInt(process.env.INVITE_TOKEN_EXPIRES_HOURS || '48', 10);
 
-  const existingEmail = await prismaSystem.user.findUnique({
-    where: { email: input.email },
-    select: { id: true },
-  });
-  if (existingEmail) {
-    throw ApiError.conflict('EMAIL_CONFLICT', 'Email này đã được sử dụng trong hệ thống');
-  }
-
-  let rawToken = '';
-  let user: RenterRow;
-
   try {
     const result = await prismaSystem.$transaction(async (tx) => {
+      // Kiểm tra email trùng NGAY TRONG transaction: email là unique TOÀN CẦU
+      // (users.email), tx là app_system (BYPASSRLS) nên thấy mọi Tenant. Đặt
+      // trong cùng transaction với INSERT để tránh khe TOCTOU; P2002 bên dưới
+      // vẫn là chốt chặn cuối cho race hiếm gặp.
+      const existingEmail = await tx.user.findUnique({
+        where: { email: input.email },
+        select: { id: true },
+      });
+      if (existingEmail) {
+        throw ApiError.conflict('EMAIL_CONFLICT', 'Email này đã được sử dụng trong hệ thống');
+      }
+
       if (phone) {
         const duplicatePhone = await tx.user.findFirst({
           where: { tenantId: context.tenantId, phone },
@@ -184,16 +185,15 @@ export async function createRenter(context: TenantContext, input: CreateRenterIn
       return { created, token };
     });
 
-    user = result.created;
-    rawToken = result.token;
+    const { created: user, token: rawToken } = result;
+
+    await sendInviteEmail(user, rawToken, inviteHours);
+
+    return { user: serializeRenter(user), inviteTokenSent: true };
   } catch (err) {
     if (isUniqueViolation(err)) mapUserUniqueViolation(err);
     throw err;
   }
-
-  await sendInviteEmail(user, rawToken, inviteHours);
-
-  return { user: serializeRenter(user), inviteTokenSent: true };
 }
 
 /**
@@ -310,9 +310,6 @@ export async function updateRenter(
 export async function resendInvite(context: TenantContext, renterId: string) {
   const inviteHours = parseInt(process.env.INVITE_TOKEN_EXPIRES_HOURS || '48', 10);
 
-  let user: RenterRow;
-  let rawToken = '';
-
   const result = await prismaSystem.$transaction(async (tx) => {
     const renter = await tx.user.findFirst({
       where: { id: renterId, tenantId: context.tenantId, role: UserRole.RENTER },
@@ -347,8 +344,7 @@ export async function resendInvite(context: TenantContext, renterId: string) {
     return { renter, token };
   });
 
-  user = result.renter;
-  rawToken = result.token;
+  const { renter: user, token: rawToken } = result;
 
   await sendInviteEmail(user, rawToken, inviteHours);
 
