@@ -11,7 +11,7 @@ import renterRoutes from './modules/renters/routes';
 import contractRoutes from './modules/contracts/routes';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler';
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app: Application = express();
 

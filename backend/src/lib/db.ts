@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load biến môi trường từ .env
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const systemDbUrl = process.env.SYSTEM_DATABASE_URL;
