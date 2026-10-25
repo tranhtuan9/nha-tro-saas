@@ -170,7 +170,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="mt-4 text-lg font-bold text-slate-900">Chỉ số điện nước & Dịch vụ</h3>
                 <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                  Chốt chỉ số theo kỳ có cơ chế đối soát chống ghi lùi số, tự động tính tiền theo đơn giá bậc thang hoặc cố định theo hợp đồng.
+                  Chốt chỉ số theo kỳ có cơ chế đối soát chống ghi lùi số, tự động tính tiền theo đơn giá điện nước và dịch vụ chốt tại thời điểm lập hóa đơn.
                 </p>
               </div>
               <div className="mt-6 border-t border-slate-200/60 pt-4 text-xs text-slate-400">
