@@ -47,42 +47,47 @@ export function LoginForm() {
       const loggedIn = await login(email, password, remember);
       router.replace(nextPath ?? getHomePathForRole(loggedIn.role));
     } catch (error) {
-      setServerError(getApiErrorMessage(error, "Đăng nhập thất bại. Vui lòng thử lại."));
+      setServerError(getApiErrorMessage(error, "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."));
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-8 shadow-card">
-      <h1 className="text-2xl font-bold text-ink">Đăng nhập</h1>
-      <p className="mt-1 text-sm text-muted">Đăng nhập để quản lý nhà trọ của bạn</p>
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-8 shadow-sm">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Đăng nhập tài khoản</h1>
+        <p className="mt-1.5 text-sm text-slate-500">
+          Truy cập hệ thống quản lý phòng trọ hoặc xem hóa đơn của bạn.
+        </p>
+      </div>
 
-      {serverError && <Alert tone="error" className="mt-4">{serverError}</Alert>}
+      {serverError && <Alert tone="error" className="mb-6">{serverError}</Alert>}
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <Field label="Email" htmlFor="login-email" required error={errors.email}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Địa chỉ Email" htmlFor="login-email" required error={errors.email}>
           <TextInput
             id="login-email"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="ban@example.com"
+            placeholder="ten@vi-du.vn"
             autoComplete="email"
             error={Boolean(errors.email)}
           />
         </Field>
+
         <Field label="Mật khẩu" htmlFor="login-password" required error={errors.password}>
           <PasswordInput
             id="login-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Nhập mật khẩu"
+            placeholder="Nhập mật khẩu của bạn"
             autoComplete="current-password"
             error={Boolean(errors.password)}
           />
         </Field>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-1">
           <Checkbox
             checked={remember}
             onChange={(event) => setRemember(event.target.checked)}
@@ -90,26 +95,28 @@ export function LoginForm() {
           />
           <Link
             href="/forgot-password"
-            className="text-sm font-medium text-primary hover:text-primary-hover"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
           >
             Quên mật khẩu?
           </Link>
         </div>
 
-        <Button type="submit" fullWidth loading={submitting}>
-          Đăng nhập
-        </Button>
+        <div className="pt-2">
+          <Button type="submit" fullWidth loading={submitting}>
+            Đăng nhập ngay
+          </Button>
+        </div>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted">
-        Chưa có tài khoản?{" "}
+      <div className="mt-8 border-t border-slate-100 pt-6 text-center text-xs text-slate-500">
+        Bạn là chủ nhà trọ mới?{" "}
         <Link
           href="/register"
-          className="font-medium text-primary hover:text-primary-hover"
+          className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
         >
-          Đăng ký làm chủ nhà trọ
+          Đăng ký tài khoản hệ thống
         </Link>
-      </p>
+      </div>
     </div>
   );
 }

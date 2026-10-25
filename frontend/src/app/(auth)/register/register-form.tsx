@@ -61,18 +61,23 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-8 shadow-card">
-      <h1 className="text-2xl font-bold text-ink">Đăng ký chủ nhà trọ</h1>
-      <p className="mt-1 text-sm text-muted">
-        Tạo tài khoản và hệ thống nhà trọ của riêng bạn để bắt đầu quản lý.
-      </p>
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-8 shadow-sm">
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 mb-2">
+          <span>Dùng thử miễn phí</span>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Đăng ký Chủ nhà trọ</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Khởi tạo không gian quản lý nhà trọ và bắt đầu vận hành ngay.
+        </p>
+      </div>
 
-      {serverError && <Alert tone="error" className="mt-4">{serverError}</Alert>}
+      {serverError && <Alert tone="error" className="mb-6">{serverError}</Alert>}
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <Field label="Họ và tên" htmlFor="register-full-name" required error={errors.fullName}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Họ và tên" htmlFor="reg-fullname" required error={errors.fullName}>
           <TextInput
-            id="register-full-name"
+            id="reg-fullname"
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
             placeholder="Nguyễn Văn A"
@@ -80,96 +85,102 @@ export function RegisterForm() {
             error={Boolean(errors.fullName)}
           />
         </Field>
-        <Field label="Email" htmlFor="register-email" required error={errors.email}>
-          <TextInput
-            id="register-email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="ban@example.com"
-            autoComplete="email"
-            error={Boolean(errors.email)}
-          />
-        </Field>
+
         <Field
-          label="Số điện thoại"
-          htmlFor="register-phone"
-          error={errors.phone}
-          hint="Không bắt buộc."
-        >
-          <TextInput
-            id="register-phone"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder="0901 234 567"
-            inputMode="tel"
-            autoComplete="tel"
-            error={Boolean(errors.phone)}
-          />
-        </Field>
-        <Field
-          label="Tên hệ thống nhà trọ"
-          htmlFor="register-tenant"
+          label="Tên hệ thống / Chuỗi nhà trọ"
+          htmlFor="reg-tenant"
           required
           error={errors.tenantName}
-          hint="Tên hiển thị trên hệ thống, có thể đổi sau."
         >
           <TextInput
-            id="register-tenant"
+            id="reg-tenant"
             value={tenantName}
             onChange={(event) => setTenantName(event.target.value)}
-            placeholder="Nhà trọ Bình Minh"
+            placeholder="VD: Nhà trọ An Khang"
             error={Boolean(errors.tenantName)}
           />
         </Field>
-        <Field label="Mật khẩu" htmlFor="register-password" required error={errors.password}>
-          <PasswordInput
-            id="register-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Tối thiểu 6 ký tự"
-            autoComplete="new-password"
-            error={Boolean(errors.password)}
-          />
-        </Field>
-        <Field
-          label="Xác nhận mật khẩu"
-          htmlFor="register-confirm"
-          required
-          error={errors.confirmPassword}
-        >
-          <PasswordInput
-            id="register-confirm"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="Nhập lại mật khẩu"
-            autoComplete="new-password"
-            error={Boolean(errors.confirmPassword)}
-          />
-        </Field>
 
-        <div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Địa chỉ Email" htmlFor="reg-email" required error={errors.email}>
+            <TextInput
+              id="reg-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="ten@vi-du.vn"
+              autoComplete="email"
+              error={Boolean(errors.email)}
+            />
+          </Field>
+
+          <Field label="Số điện thoại" htmlFor="reg-phone" error={errors.phone}>
+            <TextInput
+              id="reg-phone"
+              type="tel"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="0912 345 678"
+              autoComplete="tel"
+              error={Boolean(errors.phone)}
+            />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Mật khẩu" htmlFor="reg-password" required error={errors.password}>
+            <PasswordInput
+              id="reg-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Tối thiểu 6 ký tự"
+              autoComplete="new-password"
+              error={Boolean(errors.password)}
+            />
+          </Field>
+
+          <Field
+            label="Xác nhận mật khẩu"
+            htmlFor="reg-confirm"
+            required
+            error={errors.confirmPassword}
+          >
+            <PasswordInput
+              id="reg-confirm"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Nhập lại mật khẩu"
+              autoComplete="new-password"
+              error={Boolean(errors.confirmPassword)}
+            />
+          </Field>
+        </div>
+
+        <div className="pt-1">
           <Checkbox
             checked={agreed}
             onChange={(event) => setAgreed(event.target.checked)}
-            label="Tôi đồng ý với điều khoản sử dụng và chính sách bảo mật"
+            label="Tôi đồng ý với quy định vận hành và điều khoản dịch vụ"
           />
-          {errors.agreed && (
-            <p className="mt-1.5 text-xs font-medium text-danger-text">{errors.agreed}</p>
-          )}
+          {errors.agreed && <p className="mt-1 text-xs text-danger">{errors.agreed}</p>}
         </div>
 
-        <Button type="submit" fullWidth loading={submitting}>
-          Đăng ký
-        </Button>
+        <div className="pt-2">
+          <Button type="submit" fullWidth loading={submitting}>
+            Tạo tài khoản quản lý
+          </Button>
+        </div>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted">
+      <div className="mt-8 border-t border-slate-100 pt-6 text-center text-xs text-slate-500">
         Đã có tài khoản?{" "}
-        <Link href="/login" className="font-medium text-primary hover:text-primary-hover">
-          Đăng nhập
+        <Link
+          href="/login"
+          className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+        >
+          Đăng nhập ngay
         </Link>
-      </p>
+      </div>
     </div>
   );
 }
