@@ -32,7 +32,7 @@ docker-compose.yml PostgreSQL 16
 ### 1. Cấu hình môi trường
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item backend/.env.example backend/.env
 # rồi điền giá trị thực tế
 ```
 
