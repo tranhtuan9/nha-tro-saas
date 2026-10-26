@@ -192,6 +192,29 @@ export async function getAdminPlans(): Promise<import("./types").PlanInfo[]> {
   return res.data.data;
 }
 
+export interface AdminPlanInput {
+  name: string;
+  maxProperties: number;
+  maxRooms: number;
+  price: number;
+  durationDays: number;
+}
+
+export async function createAdminPlan(input: AdminPlanInput): Promise<import("./types").PlanInfo> {
+  const res = await api.post<ApiEnvelope<import("./types").PlanInfo>>("/admin/plans", input);
+  return res.data.data;
+}
+
+export async function updateAdminPlan(id: string, input: Partial<AdminPlanInput>): Promise<import("./types").PlanInfo> {
+  const res = await api.patch<ApiEnvelope<import("./types").PlanInfo>>(`/admin/plans/${id}`, input);
+  return res.data.data;
+}
+
+export async function deactivateAdminPlan(id: string): Promise<import("./types").PlanInfo> {
+  const res = await api.patch<ApiEnvelope<import("./types").PlanInfo>>(`/admin/plans/${id}/deactivate`);
+  return res.data.data;
+}
+
 export async function getAdminTenant(id: string): Promise<import("./types").AdminTenant> {
   const res = await api.get<ApiEnvelope<import("./types").AdminTenant>>(`/admin/tenants/${id}`);
   return res.data.data;
