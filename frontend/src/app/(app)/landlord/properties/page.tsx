@@ -646,40 +646,59 @@ export default function PropertiesPage() {
     <div className="space-y-6">
       <div>
         <PageHeader
+          breadcrumb="Vận hành / Nhà trọ & Phòng"
           title="Quản lý nhà trọ & phòng"
           description="Quản lý danh sách cơ sở, chi tiết từng phòng trọ và tình trạng cho thuê."
           actions={
             canCreate ? (
-              <>
+              <div className="flex items-center gap-2">
                 <Button
                   variant="secondary"
+                  className="h-9 px-3.5 text-xs"
                   onClick={() => setPropertyModal({ mode: "create", property: null })}
                 >
                   <Icon name="domain" className="h-4 w-4" />
                   Thêm nhà trọ
                 </Button>
-                <Button onClick={() => setRoomModal({ mode: "create", room: null })}>
+                <Button
+                  className="h-9 px-3.5 text-xs font-semibold"
+                  onClick={() => setRoomModal({ mode: "create", room: null })}
+                >
                   <Icon name="add" className="h-4 w-4" />
                   Thêm phòng
                 </Button>
-              </>
+              </div>
             ) : undefined
           }
         />
         {plan && (
-          <p className="mt-3 text-xs text-muted">
-            Gói {plan.name}: tối đa {plan.maxProperties} nhà trọ đang hoạt động và {plan.maxRooms}{" "}
-            phòng thuộc nhà trọ đang hoạt động.
-          </p>
+          <div className="mt-4 flex items-start gap-2 rounded-lg bg-surface-container/70 px-3.5 py-2.5 text-xs text-muted">
+            <Icon name="info" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+            <p>
+              Gói <span className="font-semibold text-ink">{plan.name}</span>: tối đa{" "}
+              {plan.maxProperties} nhà trọ đang hoạt động và {plan.maxRooms} phòng thuộc nhà trọ đang
+              hoạt động.
+            </p>
+          </div>
         )}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <KpiCard label="Nhà trọ" value={countValue(totalProperties)} />
-        <KpiCard label="Tổng phòng" value={countValue(totalRooms)} />
-        <KpiCard label="Đang thuê" value={countValue(occupiedRooms)} tone="success" />
-        <KpiCard label="Còn trống" value={countValue(availableRooms)} />
-        <KpiCard label="Bảo trì" value={countValue(maintenanceRooms)} tone="warning" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiCard label="Nhà trọ" value={countValue(totalProperties)} hint="Cơ sở đang quản lý" />
+        <KpiCard label="Tổng phòng" value={countValue(totalRooms)} hint="Tất cả phòng" />
+        <KpiCard
+          label="Đang thuê"
+          value={countValue(occupiedRooms)}
+          hint="Phòng có khách thuê"
+          tone="success"
+        />
+        <KpiCard label="Còn trống" value={countValue(availableRooms)} hint="Sẵn sàng cho thuê" />
+        <KpiCard
+          label="Bảo trì"
+          value={countValue(maintenanceRooms)}
+          hint="Tạm ngừng cho thuê"
+          tone="warning"
+        />
       </div>
 
       <Tabs

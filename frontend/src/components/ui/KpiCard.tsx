@@ -12,11 +12,11 @@ export function KpiCard({
   tone?: "default" | "success" | "warning" | "danger";
 }) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-4 shadow-card">
+    <div className="rounded-xl border border-border bg-surface p-5 shadow-card">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
       <p
         className={cn(
-          "mt-1.5 text-2xl font-bold",
+          "mt-2 text-3xl font-extrabold tracking-tight tabular-nums",
           tone === "success" && "text-success-text",
           tone === "warning" && "text-warning-text",
           tone === "danger" && "text-danger-text",
@@ -25,7 +25,7 @@ export function KpiCard({
       >
         {value}
       </p>
-      {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-muted">{hint}</p>}
     </div>
   );
 }

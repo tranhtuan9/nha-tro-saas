@@ -8,16 +8,24 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "lint": "eslint src tests",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "prisma db seed",
+    "prisma:generate": "tsx scripts/prisma-cli.ts generate",
+    "prisma:migrate": "tsx scripts/prisma-cli.ts migrate dev",
+    "prisma:status": "tsx scripts/prisma-cli.ts migrate status",
+    "prisma:seed": "tsx scripts/prisma-cli.ts db seed",
     "seed": "tsx prisma/seed.ts",
+    "seed:demo": "tsx prisma/seed-demo.ts --yes",
+    "cleanup:e2e": "tsx scripts/cleanup-e2e.ts",
+    "ai:smoke": "tsx scripts/ai-smoke.ts",
+    "payos:smoke": "tsx scripts/payos-smoke.ts",
+    "payos:confirm-webhook": "tsx scripts/payos-confirm-webhook.ts",
     "test": "vitest run"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@google/genai": "2.30.0",
+    "@payos/node": "2.0.5",
     "@prisma/client": "^6.4.1",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.6",

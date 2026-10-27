@@ -1,9 +1,6 @@
+import '../config/env';
 import jwt from 'jsonwebtoken';
 import { UserRole } from '@prisma/client';
-import dotenv from 'dotenv';
-import path from 'path';
-
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;

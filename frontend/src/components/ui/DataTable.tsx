@@ -150,11 +150,11 @@ export function DataTable<T>({
   const showEmpty = !isLoading && !error && rows.length === 0;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-card">
+    <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-card">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
-            <tr className="bg-surface-container">
+            <tr className="border-b border-border bg-surface-container/70">
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -199,7 +199,13 @@ export function DataTable<T>({
             {!isLoading &&
               !error &&
               rows.map((row) => (
-                <tr key={rowKey(row)} className={cn("border-t border-border", rowClassName?.(row))}>
+                <tr
+                  key={rowKey(row)}
+                  className={cn(
+                    "border-t border-border transition-colors hover:bg-surface-container/50",
+                    rowClassName?.(row),
+                  )}
+                >
                   {columns.map((column) => (
                     <td
                       key={column.key}

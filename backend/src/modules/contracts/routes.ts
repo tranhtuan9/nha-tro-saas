@@ -6,14 +6,22 @@ import { UserRole } from '@prisma/client';
 
 const router = Router();
 
-router.use(authenticateJwt, requireRole(UserRole.LANDLORD));
+router.use(authenticateJwt);
 
-router.get('/', contractController.list);
+// GET: Landlord và Renter (UC28 - Renter chỉ thấy hợp đồng của mình nhờ RLS).
+router.get('/', requireRole(UserRole.LANDLORD, UserRole.RENTER), contractController.list);
+router.get('/:id', requireRole(UserRole.LANDLORD, UserRole.RENTER), contractController.getById);
+
+// Ghi/sửa: chỉ Landlord.
 // Chỉ route TẠO MỚI mới yêu cầu gói còn hiệu lực; GET/PATCH vẫn cho phép khi hết hạn.
-router.post('/', requireActiveSubscription, contractController.create);
-router.get('/:id', contractController.getById);
-router.patch('/:id', contractController.update);
-router.patch('/:id/terminate', contractController.terminate);
-router.patch('/:id/end', contractController.end);
+router.post(
+  '/',
+  requireRole(UserRole.LANDLORD),
+  requireActiveSubscription,
+  contractController.create
+);
+router.patch('/:id', requireRole(UserRole.LANDLORD), contractController.update);
+router.patch('/:id/terminate', requireRole(UserRole.LANDLORD), contractController.terminate);
+router.patch('/:id/end', requireRole(UserRole.LANDLORD), contractController.end);
 
 export default router;

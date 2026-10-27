@@ -3,8 +3,8 @@ import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+// Load environment variables từ backend/.env (nguồn duy nhất)
+dotenv.config({ path: path.resolve(__dirname, '../.env'), override: true });
 
 // Seed sử dụng vai trò app_system (BYPASSRLS) để khởi tạo dữ liệu hệ thống
 const systemDbUrl = process.env.SYSTEM_DATABASE_URL;

@@ -5,7 +5,9 @@ import { getApiErrorMessage, notifyApp, setAdminUserLock } from "@/lib/api";
 import { Alert } from "@/components/ui/Alert";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ActionButton, RowActions } from "@/components/ui/RowActions";
 import { Select, TextInput } from "@/components/ui/form";
 import { usePagedList } from "@/lib/use-paged-list";
 import type { AdminUser } from "@/lib/types";
@@ -39,6 +41,7 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lockTarget, setLockTarget] = useState<AdminUser | null>(null);
 
   const list = usePagedList<AdminUser>("/admin/users", {
     page,
@@ -53,21 +56,31 @@ export default function AdminUsersPage() {
     ? Math.max(1, Math.ceil(list.pagination.total / 20))
     : 1;
 
-  async function toggle(id: string, currentStatus: string) {
-    setLoading(id);
+  async function toggle(user: AdminUser) {
+    setLoading(user.id);
     setError(null);
     try {
-      await setAdminUserLock(id, currentStatus === "ACTIVE" ? "lock" : "unlock");
+      const locking = user.status === "ACTIVE";
+      await setAdminUserLock(user.id, locking ? "lock" : "unlock");
       notifyApp({
         tone: "success",
-        message: currentStatus === "ACTIVE" ? "Đã khóa tài khoản người dùng" : "Đã mở khóa tài khoản thành công",
+        message: locking ? "Đã khóa tài khoản người dùng" : "Đã mở khóa tài khoản thành công",
       });
+      setLockTarget(null);
       await list.mutate();
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
       setLoading(null);
     }
+  }
+
+  function requestToggle(user: AdminUser) {
+    if (user.status === "ACTIVE") {
+      setLockTarget(user);
+      return;
+    }
+    void toggle(user);
   }
 
   return (
@@ -187,14 +200,15 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-5 py-4 text-right">
                         {!isAdmin ? (
-                          <Button
-                            variant={isLocked ? "secondary" : "danger"}
-                            className="h-8 px-3 text-xs"
-                            loading={loading === user.id}
-                            onClick={() => void toggle(user.id, user.status)}
-                          >
-                            {isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
-                          </Button>
+                          <RowActions>
+                            <ActionButton
+                              tone={isLocked ? "primary" : "danger"}
+                              disabled={loading === user.id}
+                              onClick={() => requestToggle(user)}
+                            >
+                              {isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
+                            </ActionButton>
+                          </RowActions>
                         ) : (
                           <span className="text-xs text-slate-400 italic">Quản trị cấp cao</span>
                         )}
@@ -234,6 +248,22 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={lockTarget !== null}
+        title="Khóa tài khoản"
+        tone="danger"
+        confirmLabel="Khóa tài khoản"
+        loading={loading === lockTarget?.id}
+        onCancel={() => setLockTarget(null)}
+        onConfirm={() => lockTarget && void toggle(lockTarget)}
+        message={
+          <p>
+            Tài khoản <span className="font-semibold">{lockTarget?.fullName}</span> (
+            {lockTarget?.email}) sẽ bị khóa và không thể đăng nhập cho đến khi được mở khóa.
+          </p>
+        }
+      />
     </div>
   );
 }

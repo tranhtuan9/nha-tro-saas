@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Field, PasswordInput, TextInput } from "@/components/ui/form";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -103,12 +104,15 @@ export function ProfileView() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <h1 className="text-2xl font-bold text-ink">Hồ sơ cá nhân</h1>
-      <p className="mt-1 text-sm text-muted">Cập nhật thông tin cá nhân và mật khẩu đăng nhập.</p>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        breadcrumb="Tài khoản / Thông tin Cá nhân"
+        title="Hồ sơ cá nhân"
+        description="Cập nhật thông tin cá nhân và mật khẩu đăng nhập."
+      />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border border-border bg-surface p-6 shadow-card">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-xl border border-border bg-surface p-6 shadow-card">
           <h2 className="text-base font-semibold text-ink">Thông tin cá nhân</h2>
 
           <form onSubmit={handleProfileSubmit} className="mt-4 space-y-4">
@@ -165,7 +169,7 @@ export function ProfileView() {
           </form>
         </section>
 
-        <section className="h-fit rounded-lg border border-border bg-surface p-6 shadow-card">
+        <section className="h-fit rounded-xl border border-border bg-surface p-6 shadow-card">
           <h2 className="text-base font-semibold text-ink">Đổi mật khẩu</h2>
           <p className="mt-1 text-sm text-muted">Mật khẩu mới phải từ 6 ký tự trở lên.</p>
 

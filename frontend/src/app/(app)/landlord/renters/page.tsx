@@ -696,9 +696,11 @@ export default function RentersPage() {
           <div className="min-w-0">
             <p className="whitespace-nowrap">{formatDate(contract.endDate)}</p>
             {contract.status === "ACTIVE" && days !== null && days <= 30 && (
-              <p className={days >= 0 ? "text-xs font-medium text-warning-text" : "text-xs font-medium text-danger-text"}>
-                {days >= 0 ? `Sắp hết hạn (${days} ngày)` : `Đã quá hạn (${Math.abs(days)} ngày)`}
-              </p>
+              <span className="mt-1 inline-flex">
+                <Badge tone={days >= 0 ? "warning" : "danger"}>
+                  {days >= 0 ? `Còn ${days} ngày` : `Quá hạn ${Math.abs(days)} ngày`}
+                </Badge>
+              </span>
             )}
           </div>
         );
@@ -774,17 +776,24 @@ export default function RentersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb="Khách thuê / Người thuê & Hợp đồng"
         title="Người thuê & hợp đồng"
         description="Quản lý thông tin khách thuê, thời hạn hợp đồng và tiền đặt cọc của nhà trọ."
         actions={
           canCreate ? (
             tab === "renters" ? (
-              <Button onClick={() => setRenterModal({ mode: "create", renter: null })}>
+              <Button
+                className="h-9 px-3.5 text-xs font-semibold"
+                onClick={() => setRenterModal({ mode: "create", renter: null })}
+              >
                 <Icon name="add" className="h-4 w-4" />
                 Thêm người thuê
               </Button>
             ) : (
-              <Button onClick={() => setContractModal({ mode: "create", contract: null })}>
+              <Button
+                className="h-9 px-3.5 text-xs font-semibold"
+                onClick={() => setContractModal({ mode: "create", contract: null })}
+              >
                 <Icon name="add" className="h-4 w-4" />
                 Tạo hợp đồng
               </Button>
@@ -793,18 +802,29 @@ export default function RentersPage() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <KpiCard label="Người thuê" value={countValue(totalRenters)} />
-        <KpiCard label="Hợp đồng" value={countValue(totalContracts)} />
-        <KpiCard label="Hiệu lực" value={countValue(activeContractCount)} tone="success" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiCard
+          label="Người thuê"
+          value={countValue(totalRenters)}
+          hint="Khách đang quản lý"
+        />
+        <KpiCard label="Hợp đồng" value={countValue(totalContracts)} hint="Tất cả hợp đồng" />
+        <KpiCard
+          label="Hiệu lực"
+          value={countValue(activeContractCount)}
+          hint="Hợp đồng đang thuê"
+          tone="success"
+        />
         <KpiCard
           label="Sắp hết hạn (< 30 ngày)"
           value={activeContracts.isLoading ? "…" : expiringSoon}
+          hint="Cần gia hạn hoặc kết thúc"
           tone={expiringSoon > 0 ? "warning" : "default"}
         />
         <KpiCard
           label="Tổng tiền cọc"
           value={activeContracts.isLoading ? "…" : formatCurrency(totalDeposit)}
+          hint="Của hợp đồng hiệu lực"
         />
       </div>
 

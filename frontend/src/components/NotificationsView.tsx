@@ -101,10 +101,18 @@ export function NotificationsView() {
   return (
     <div className="space-y-6">
       <PageHeader
+        breadcrumb="Hệ thống / Hộp thư Thông báo"
         title="Thông báo"
         description="Các cập nhật về hóa đơn, thanh toán và hoạt động liên quan đến bạn."
         actions={
-          <Button variant="secondary" onClick={() => void onReadAll()} loading={busy} disabled={unreadCount === 0}>
+          <Button
+            variant="secondary"
+            className="h-9 px-3.5 text-xs font-semibold"
+            onClick={() => void onReadAll()}
+            loading={busy}
+            disabled={unreadCount === 0}
+          >
+            <Icon name="check" className="h-4 w-4" />
             Đánh dấu tất cả đã đọc
           </Button>
         }
@@ -126,17 +134,24 @@ export function NotificationsView() {
 
       <div className="rounded-xl border border-border bg-surface shadow-card">
         {list.isLoading ? (
-          <p className="px-5 py-10 text-center text-sm text-muted">Đang tải thông báo…</p>
+          <ul className="divide-y divide-border">
+            {[0, 1, 2, 3].map((row) => (
+              <li key={row} className="flex gap-4 px-5 py-4">
+                <div className="h-9 w-9 shrink-0 animate-pulse rounded-full bg-surface-container" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="h-4 w-48 animate-pulse rounded bg-surface-container" />
+                  <div className="h-3 w-full max-w-md animate-pulse rounded bg-surface-container" />
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : list.error ? (
           <div className="px-5 py-10 text-center">
             <p className="text-sm text-muted">Không thể tải thông báo.</p>
-            <button
-              type="button"
-              onClick={() => void list.mutate()}
-              className="mt-2 text-sm font-semibold text-primary hover:underline"
-            >
+            <Button variant="secondary" className="mt-3" onClick={() => void list.mutate()}>
+              <Icon name="refresh" className="h-4 w-4" />
               Thử lại
-            </button>
+            </Button>
           </div>
         ) : rows.length === 0 ? (
           <div className="px-5 py-12 text-center">
@@ -160,7 +175,7 @@ export function NotificationsView() {
                     type="button"
                     onClick={() => void onRead(item)}
                     className={cn(
-                      "flex w-full gap-4 px-5 py-4 text-left transition-colors hover:bg-surface-container",
+                      "flex w-full gap-4 px-5 py-4 text-left transition-colors hover:bg-surface-container/60 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary",
                       !item.isRead && "bg-primary-soft/40",
                     )}
                   >
@@ -194,21 +209,25 @@ export function NotificationsView() {
             <p className="text-xs text-muted">
               Trang {pagination.page}/{totalPages} · {pagination.total} thông báo
             </p>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
                 onClick={() => setPage((value) => Math.max(1, value - 1))}
                 disabled={pagination.page <= 1}
+                aria-label="Trang trước"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:bg-surface-container hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Trước
-              </Button>
-              <Button
-                variant="secondary"
+                <Icon name="chevron_left" className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
                 onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
                 disabled={pagination.page >= totalPages}
+                aria-label="Trang sau"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:bg-surface-container hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Sau
-              </Button>
+                <Icon name="chevron_right" className="h-4 w-4" />
+              </button>
             </div>
           </div>
         )}

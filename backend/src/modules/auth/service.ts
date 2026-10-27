@@ -246,6 +246,7 @@ export async function resetPassword(input: ResetPasswordInput) {
 /**
  * UC03, UC11, UC26: Lấy hồ sơ cá nhân
  * Đi qua RLS context nếu là Landlord/Renter. Admin đi qua prismaSystem.
+ * Trả kèm tenant + plan cho LANDLORD/RENTER (theo contract FE).
  */
 export async function getProfile(userId: string, role: UserRole, tenantId: string | null) {
   if (role === UserRole.ADMIN || !tenantId) {
@@ -254,7 +255,7 @@ export async function getProfile(userId: string, role: UserRole, tenantId: strin
       select: safeUserSelect,
     });
     if (!user) throw ApiError.notFound('PROFILE_NOT_FOUND', 'Không tìm thấy người dùng');
-    return user;
+    return { ...user, tenant: null };
   }
 
   const db = getTenantDb({ tenantId, userId, role });
@@ -264,7 +265,28 @@ export async function getProfile(userId: string, role: UserRole, tenantId: strin
   });
 
   if (!user) throw ApiError.notFound('PROFILE_NOT_FOUND', 'Không tìm thấy thông tin hồ sơ');
-  return user;
+
+  const tenant = await prismaSystem.tenant.findUnique({
+    where: { id: tenantId },
+    select: {
+      id: true,
+      name: true,
+      planId: true,
+      status: true,
+      subscriptionStart: true,
+      subscriptionEnd: true,
+      plan: {
+        select: {
+          id: true,
+          name: true,
+          maxProperties: true,
+          maxRooms: true,
+        },
+      },
+    },
+  });
+
+  return { ...user, tenant };
 }
 
 /**

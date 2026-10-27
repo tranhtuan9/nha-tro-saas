@@ -21,7 +21,7 @@ export function Tabs({
   return (
     <div
       role="tablist"
-      className={cn("inline-flex flex-wrap gap-1 rounded-lg border border-border bg-surface-container p-1", className)}
+      className={cn("flex flex-wrap gap-6 border-b border-border", className)}
     >
       {items.map((item) => {
         const isActive = item.id === active;
@@ -33,10 +33,10 @@ export function Tabs({
             aria-selected={isActive}
             onClick={() => onChange(item.id)}
             className={cn(
-              "rounded-md px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+              "-mb-px border-b-2 px-0.5 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
               isActive
-                ? "bg-surface text-primary shadow-card"
-                : "text-muted hover:bg-surface/60 hover:text-ink",
+                ? "border-primary text-primary"
+                : "border-transparent text-muted hover:border-border hover:text-ink",
             )}
           >
             {item.label}

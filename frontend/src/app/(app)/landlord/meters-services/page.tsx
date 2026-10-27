@@ -738,11 +738,15 @@ export default function MetersServicesPage() {
     <div className="space-y-6">
       <div>
         <PageHeader
+          breadcrumb="Vận hành / Điện nước & Dịch vụ"
           title="Điện nước & dịch vụ"
           description="Chốt chỉ số điện nước theo kỳ và cấu hình bảng giá dịch vụ tính kèm tiền phòng."
           actions={
             canCreate && tab === "services" ? (
-              <Button onClick={() => setServiceModal({ mode: "create", service: null })}>
+              <Button
+                className="h-9 px-3.5 text-xs font-semibold"
+                onClick={() => setServiceModal({ mode: "create", service: null })}
+              >
                 <Icon name="add" className="h-4 w-4" />
                 Thêm dịch vụ
               </Button>
@@ -762,7 +766,7 @@ export default function MetersServicesPage() {
 
       {tab === "meters" && (
         <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3">
             <KpiCard
               label="Điện tiêu thụ kỳ"
               value={sheetLoading ? "…" : formatIndex(usageSummary.electricity)}
@@ -776,6 +780,7 @@ export default function MetersServicesPage() {
             <KpiCard
               label="Phòng đã ghi"
               value={sheetLoading ? "…" : `${enteredCount}/${sheetRows.length}`}
+              hint="Phòng có chỉ số trong kỳ"
               tone={enteredCount === sheetRows.length && sheetRows.length > 0 ? "success" : "default"}
             />
           </div>
@@ -806,8 +811,8 @@ export default function MetersServicesPage() {
                 <Icon name="chevron_left" className="h-4 w-4" />
                 Tháng trước
               </Button>
-              <span className="min-w-28 text-center text-sm font-semibold text-ink">
-                Kỳ: {formatBillingMonth(billingMonth)}
+              <span className="min-w-32 rounded-lg bg-surface-container px-3 py-2 text-center text-sm font-semibold text-ink">
+                Kỳ {formatBillingMonth(billingMonth)}
               </span>
               <Button
                 variant="secondary"
@@ -833,15 +838,12 @@ export default function MetersServicesPage() {
           </FilterBar>
 
           {selectedProperty && (
-            <div className="flex items-start gap-2 rounded-lg bg-info-soft px-3.5 py-3 text-sm text-info-text ring-1 ring-inset ring-sky-200">
-              <Icon name="info" className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>
-                Đơn giá hiện tại: điện {formatCurrency(selectedProperty.electricityUnitPrice)}/kWh và
-                nước {formatCurrency(selectedProperty.waterUnitPrice)}/m³. Chỉ số mới phải lớn hơn
-                chỉ số kỳ trước; nếu nhỏ hơn, hệ thống yêu cầu xác nhận trước khi lưu. Sửa đơn giá
-                trong màn “Quản lý nhà trọ & phòng”.
-              </p>
-            </div>
+            <Alert tone="info">
+              Đơn giá hiện tại: điện {formatCurrency(selectedProperty.electricityUnitPrice)}/kWh và
+              nước {formatCurrency(selectedProperty.waterUnitPrice)}/m³. Chỉ số mới phải lớn hơn chỉ
+              số kỳ trước; nếu nhỏ hơn, hệ thống yêu cầu xác nhận trước khi lưu. Sửa đơn giá trong màn
+              “Quản lý nhà trọ & phòng”.
+            </Alert>
           )}
 
           {saveErrors.length > 0 && (
@@ -872,17 +874,26 @@ export default function MetersServicesPage() {
             emptyIcon={<Icon name="bolt" className="h-5 w-5" />}
             footer={
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p>
-                  {dirtyItems.length > 0 ? (
-                    <>
-                      <span className="font-medium text-warning-text">{dirtyItems.length} phòng</span>{" "}
-                      có thay đổi chưa lưu
-                    </>
-                  ) : (
-                    "Không có thay đổi nào chưa lưu"
-                  )}
-                </p>
                 <div className="flex items-center gap-2">
+                  <span
+                    className={`flex h-7 w-7 items-center justify-center rounded-full ${
+                      dirtyItems.length > 0 ? "bg-warning-soft text-warning-text" : "bg-success-soft text-success-text"
+                    }`}
+                  >
+                    <Icon name={dirtyItems.length > 0 ? "edit" : "check"} className="h-3.5 w-3.5" />
+                  </span>
+                  <p>
+                    {dirtyItems.length > 0 ? (
+                      <>
+                        <span className="font-semibold text-warning-text">{dirtyItems.length} phòng</span>{" "}
+                        có thay đổi chưa lưu
+                      </>
+                    ) : (
+                      "Không có thay đổi nào chưa lưu"
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 sm:justify-end">
                   <Button variant="secondary" disabled={dirtyItems.length === 0 || saving} onClick={resetDrafts}>
                     Hủy bỏ
                   </Button>
@@ -899,10 +910,23 @@ export default function MetersServicesPage() {
 
       {tab === "services" && (
         <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <KpiCard label="Tổng số dịch vụ" value={countValue(totalServices)} />
-            <KpiCard label="Đang áp dụng" value={countValue(activeServices)} tone="success" />
-            <KpiCard label="Ngừng sử dụng" value={countValue(inactiveServices)} />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <KpiCard
+              label="Tổng số dịch vụ"
+              value={countValue(totalServices)}
+              hint="Trong danh mục"
+            />
+            <KpiCard
+              label="Đang áp dụng"
+              value={countValue(activeServices)}
+              hint="Cộng vào hóa đơn hằng tháng"
+              tone="success"
+            />
+            <KpiCard
+              label="Ngừng sử dụng"
+              value={countValue(inactiveServices)}
+              hint="Không còn tính phí"
+            />
           </div>
 
           <FilterBar>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import useSWR from "swr";
 import {
   apiFetcher,
@@ -286,7 +287,7 @@ function InvoiceCreateModal({ open, onClose, onCreated }: InvoiceCreateModalProp
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Kỳ hóa đơn" htmlFor="invoice-month" required>
-            <input
+            <TextInput
               id="invoice-month"
               type="month"
               value={billingMonth}
@@ -294,7 +295,6 @@ function InvoiceCreateModal({ open, onClose, onCreated }: InvoiceCreateModalProp
                 setBillingMonth(event.target.value);
                 setPreview(null);
               }}
-              className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
             />
           </Field>
           <Field label="Hạn thanh toán" htmlFor="invoice-due" hint="Không bắt buộc — mặc định theo cấu hình">
@@ -629,33 +629,43 @@ export default function InvoicesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Hóa đơn"
+        breadcrumb="Tài chính / Sổ Hóa đơn"
+        title="Quản lý hóa đơn"
         description="Lập hóa đơn hàng tháng và theo dõi trạng thái thanh toán của từng phòng."
         actions={
           canCreate ? (
-            <Button onClick={() => setCreateOpen(true)}>
-              <Icon name="add" className="h-4 w-4" />
-              Lập hóa đơn
-            </Button>
+            <Link href="/landlord/invoices/new">
+              <Button className="h-9 px-3.5 text-xs font-semibold">
+                <Icon name="add" className="h-4 w-4" />
+                Lập hóa đơn
+              </Button>
+            </Link>
           ) : undefined
         }
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Đã phát hành" value={summaryValue(summaryData?.issuedTotal, summaryData?.issuedCount)} />
+        <KpiCard
+          label="Đã phát hành"
+          value={summaryValue(summaryData?.issuedTotal, summaryData?.issuedCount)}
+          hint="Tổng hóa đơn trong kỳ"
+        />
         <KpiCard
           label="Đã thu"
           value={summaryValue(summaryData?.paidTotal, summaryData?.paidCount)}
+          hint="Hóa đơn đã thanh toán"
           tone="success"
         />
         <KpiCard
           label="Chưa thu"
           value={summaryValue(summaryData?.unpaidTotal, summaryData?.unpaidCount)}
+          hint="Hóa đơn còn chờ thanh toán"
           tone="warning"
         />
         <KpiCard
           label="Quá hạn"
           value={summaryValue(summaryData?.overdueTotal, summaryData?.overdueCount)}
+          hint="Hóa đơn đã quá hạn"
           tone="danger"
         />
       </div>
@@ -672,7 +682,7 @@ export default function InvoicesPage() {
             className="sm:w-80"
           />
           <div className="w-full sm:w-44">
-            <input
+            <TextInput
               type="month"
               aria-label="Lọc theo kỳ"
               value={month}
@@ -680,7 +690,6 @@ export default function InvoicesPage() {
                 setMonth(event.target.value);
                 setPage(1);
               }}
-              className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
             />
           </div>
           <div className="w-full sm:w-48">

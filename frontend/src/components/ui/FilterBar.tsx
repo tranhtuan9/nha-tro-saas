@@ -8,7 +8,7 @@ export function FilterBar({ children, className }: { children: React.ReactNode; 
   return (
     <div
       className={cn(
-        "flex flex-col gap-2 rounded-lg border border-border bg-surface p-3 shadow-card sm:flex-row sm:flex-wrap sm:items-center",
+        "flex flex-col gap-2 rounded-xl border border-border bg-surface p-3.5 shadow-card sm:flex-row sm:flex-wrap sm:items-center",
         className,
       )}
     >

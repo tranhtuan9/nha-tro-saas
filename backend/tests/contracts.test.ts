@@ -685,20 +685,100 @@ describe('Module Hợp đồng (UC15) — /api/contracts', () => {
     });
   });
 
-  describe('Phân quyền & trạng thái Tenant', () => {
-    it('RENTER gọi API -> 403 FORBIDDEN', async () => {
-      const renterLogin = await request(app)
+  describe('Renter xem hợp đồng của mình (UC28)', () => {
+    let renterA1Token = '';
+    let renterA2Token = '';
+
+    beforeAll(async () => {
+      const loginA1 = await request(app)
         .post('/api/auth/login')
         .send({ email: `contract.renter.a1.${ts}@example.com`, password: PASSWORD });
-      expect(renterLogin.status).toBe(200);
+      expect(loginA1.status).toBe(200);
+      renterA1Token = loginA1.body.data.token;
 
-      const res = await request(app)
-        .get('/api/contracts')
-        .set('Authorization', `Bearer ${renterLogin.body.data.token}`);
-      expect(res.status).toBe(403);
-      expect(res.body.error.code).toBe('FORBIDDEN');
+      const loginA2 = await request(app)
+        .post('/api/auth/login')
+        .send({ email: `contract.renter.a2.${ts}@example.com`, password: PASSWORD });
+      expect(loginA2.status).toBe(200);
+      renterA2Token = loginA2.body.data.token;
     });
 
+    it('RENTER GET / -> 200, chỉ thấy hợp đồng của chính mình', async () => {
+      const res = await request(app)
+        .get('/api/contracts')
+        .set('Authorization', `Bearer ${renterA1Token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(res.body.pagination.total).toBe(res.body.data.length);
+      expect(res.body.data.every((c: { renterId: string }) => c.renterId === renterA1Id)).toBe(
+        true
+      );
+
+      // Người thuê khác cùng Tenant không thấy hợp đồng của A1.
+      const resA2 = await request(app)
+        .get('/api/contracts')
+        .set('Authorization', `Bearer ${renterA2Token}`);
+
+      expect(resA2.status).toBe(200);
+      expect(resA2.body.data.every((c: { renterId: string }) => c.renterId === renterA2Id)).toBe(
+        true
+      );
+      expect(resA2.body.pagination.total).toBeLessThan(res.body.pagination.total);
+    });
+
+    it('RENTER xem chi tiết hợp đồng của mình -> 200 (kèm phòng và tên nhà trọ)', async () => {
+      const list = await request(app)
+        .get('/api/contracts')
+        .set('Authorization', `Bearer ${renterA1Token}`);
+      const own = list.body.data[0];
+
+      const res = await request(app)
+        .get(`/api/contracts/${own.id}`)
+        .set('Authorization', `Bearer ${renterA1Token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(own.id);
+      expect(res.body.data.renter.id).toBe(renterA1Id);
+      expect(res.body.data.room.roomCode).toBeDefined();
+      expect(res.body.data.room.propertyName).toBeDefined();
+      expect(typeof res.body.data.monthlyRent).toBe('string');
+    });
+
+    it('RENTER xem hợp đồng của người thuê khác -> 404 CONTRACT_NOT_FOUND', async () => {
+      const res = await request(app)
+        .get(`/api/contracts/${contractTerminatedFixtureId}`)
+        .set('Authorization', `Bearer ${renterA1Token}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('CONTRACT_NOT_FOUND');
+    });
+
+    it('RENTER xem hợp đồng của Tenant khác -> 404 CONTRACT_NOT_FOUND', async () => {
+      const res = await request(app)
+        .get(`/api/contracts/${contractBId}`)
+        .set('Authorization', `Bearer ${renterA1Token}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('CONTRACT_NOT_FOUND');
+    });
+
+    it('RENTER không tạo/sửa được hợp đồng -> 403', async () => {
+      const post = await authPost(renterA1Token, {
+        roomId: rooms['A3'],
+        renterId: renterA1Id,
+        startDate: '2026-01-01',
+        endDate: '2027-01-01',
+        monthlyRent: 3000000,
+      });
+      expect(post.status).toBe(403);
+
+      const patch = await authPatch(renterA1Token, `/api/contracts/${contractTerminatedFixtureId}`);
+      expect(patch.status).toBe(403);
+    });
+  });
+
+  describe('Phân quyền & trạng thái Tenant', () => {
     it('ADMIN gọi API -> 403 FORBIDDEN', async () => {
       const adminLogin = await request(app).post('/api/auth/login').send({
         email: process.env.SEED_ADMIN_EMAIL || 'admin@example.com',

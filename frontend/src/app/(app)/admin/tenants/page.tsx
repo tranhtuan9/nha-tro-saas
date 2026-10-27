@@ -15,10 +15,12 @@ import {
 import { Alert } from "@/components/ui/Alert";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ActionButton, RowActions } from "@/components/ui/RowActions";
 import { Select, TextInput } from "@/components/ui/form";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { daysUntilDate, formatCurrency, formatDate, isSubscriptionExpired } from "@/lib/format";
 import { usePagedList } from "@/lib/use-paged-list";
 import type { AdminTenant, PlanInfo } from "@/lib/types";
 
@@ -31,6 +33,22 @@ const STATUS_TONE: Record<string, BadgeTone> = {
   ACTIVE: "success",
   SUSPENDED: "danger",
 };
+
+const EXPIRING_SOON_DAYS = 7;
+
+function getSubscriptionBadge(
+  subscriptionEnd: string | null,
+): { label: string; tone: BadgeTone } | null {
+  if (!subscriptionEnd) return null;
+  if (isSubscriptionExpired(subscriptionEnd)) {
+    return { label: "Hết hạn", tone: "danger" };
+  }
+  const daysLeft = daysUntilDate(subscriptionEnd);
+  if (daysLeft !== null && daysLeft <= EXPIRING_SOON_DAYS) {
+    return { label: "Sắp hết hạn", tone: "warning" };
+  }
+  return null;
+}
 
 export default function AdminTenantsPage() {
   const [activeTab, setActiveTab] = useState<"tenants" | "plans">("tenants");
@@ -45,7 +63,7 @@ export default function AdminTenantsPage() {
 
   // State cho Tab Gói dịch vụ SaaS
   const [plans, setPlans] = useState<PlanInfo[]>([]);
-  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [loadingPlans, setLoadingPlans] = useState(true);
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlanInfo | null>(null);
   const [planData, setPlanData] = useState({
@@ -58,6 +76,8 @@ export default function AdminTenantsPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<AdminTenant | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = useState<PlanInfo | null>(null);
 
   const list = usePagedList<AdminTenant>("/admin/tenants", {
     page,
@@ -82,18 +102,29 @@ export default function AdminTenantsPage() {
   }
 
   useEffect(() => {
-    void loadPlans();
+    let active = true;
+    getAdminPlans()
+      .then((data) => {
+        if (active) setPlans(data);
+      })
+      .catch((err) => {
+        if (active) setError(getApiErrorMessage(err));
+      })
+      .finally(() => {
+        if (active) setLoadingPlans(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Tính toán số liệu thống kê KPI từ list.rows
   const totalTenantsCount = list.pagination?.total ?? list.rows.length;
   const activeCount = list.rows.filter((t) => t.status === "ACTIVE").length;
   const suspendedCount = list.rows.filter((t) => t.status === "SUSPENDED").length;
-  const expiringSoonCount = list.rows.filter((t) => {
-    if (!t.subscriptionEnd) return false;
-    const daysLeft = (new Date(t.subscriptionEnd).getTime() - Date.now()) / (1000 * 3600 * 24);
-    return daysLeft >= 0 && daysLeft <= 7;
-  }).length;
+  const expiringSoonCount = list.rows.filter(
+    (t) => getSubscriptionBadge(t.subscriptionEnd)?.label === "Sắp hết hạn",
+  ).length;
 
   async function openTenantDetail(id: string) {
     setError(null);
@@ -110,18 +141,28 @@ export default function AdminTenantsPage() {
     setLoading(true);
     setError(null);
     try {
-      await setAdminTenantStatus(tenant.id, tenant.status === "ACTIVE" ? "suspend" : "activate");
+      const suspending = tenant.status === "ACTIVE";
+      await setAdminTenantStatus(tenant.id, suspending ? "suspend" : "activate");
       notifyApp({
         tone: "success",
-        message: tenant.status === "ACTIVE" ? "Đã tạm ngưng hệ thống nhà trọ" : "Đã kích hoạt lại nhà trọ",
+        message: suspending ? "Đã tạm ngưng hệ thống nhà trọ" : "Đã kích hoạt lại nhà trọ",
       });
       if (selectedTenant) setSelectedTenant(null);
+      setSuspendTarget(null);
       await list.mutate();
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
+  }
+
+  function requestTenantToggle(tenant: AdminTenant) {
+    if (tenant.status === "ACTIVE") {
+      setSuspendTarget(tenant);
+      return;
+    }
+    void toggleTenantStatus(tenant);
   }
 
   async function changeTenantPlan() {
@@ -197,13 +238,14 @@ export default function AdminTenantsPage() {
     }
   }
 
-  async function handleDeactivatePlan(plan: PlanInfo) {
-    if (!confirm(`Bạn có chắc chắn muốn ẩn/ngừng kích hoạt gói "${plan.name}" không?`)) return;
+  async function handleDeactivatePlan() {
+    if (!deactivateTarget) return;
     setLoading(true);
     setError(null);
     try {
-      await deactivateAdminPlan(plan.id);
+      await deactivateAdminPlan(deactivateTarget.id);
       notifyApp({ tone: "success", message: "Đã ngừng kích hoạt gói dịch vụ" });
+      setDeactivateTarget(null);
       await loadPlans();
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -243,21 +285,19 @@ export default function AdminTenantsPage() {
         <nav className="flex space-x-8" aria-label="Tabs">
           <button
             onClick={() => setActiveTab("tenants")}
-            className={`py-3 px-1 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === "tenants"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
-            }`}
+            className={`py-3 px-1 text-sm font-semibold border-b-2 transition-colors ${activeTab === "tenants"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+              }`}
           >
             Tenant
           </button>
           <button
             onClick={() => setActiveTab("plans")}
-            className={`py-3 px-1 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === "plans"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
-            }`}
+            className={`py-3 px-1 text-sm font-semibold border-b-2 transition-colors ${activeTab === "plans"
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+              }`}
           >
             Gói dịch vụ SaaS
           </button>
@@ -354,40 +394,45 @@ export default function AdminTenantsPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredTenantRows.map((tenant) => (
-                      <tr key={tenant.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-5 py-4 font-semibold text-slate-900">{tenant.name}</td>
-                        <td className="px-5 py-4 text-slate-600">{tenant.plan?.name ?? "Cơ bản"}</td>
-                        <td className="px-5 py-4">
-                          <Badge tone={STATUS_TONE[tenant.status]} dot>
-                            {STATUS_LABEL[tenant.status]}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-4 text-slate-600">
-                          {tenant.subscriptionEnd ? formatDate(tenant.subscriptionEnd) : "-"}
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <div className="inline-flex items-center gap-3">
-                            <button
-                              onClick={() => void openTenantDetail(tenant.id)}
-                              className="text-xs font-semibold text-slate-700 hover:text-blue-600 transition-colors"
-                            >
-                              Chi tiết
-                            </button>
-                            <button
-                              onClick={() => void toggleTenantStatus(tenant)}
-                              className={`text-xs font-semibold transition-colors ${
-                                tenant.status === "ACTIVE"
-                                  ? "text-rose-600 hover:text-rose-700"
-                                  : "text-blue-600 hover:text-blue-700"
-                              }`}
-                            >
-                              {tenant.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                    filteredTenantRows.map((tenant) => {
+                      const subscriptionBadge = getSubscriptionBadge(tenant.subscriptionEnd);
+                      return (
+                        <tr key={tenant.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="px-5 py-4 font-semibold text-slate-900">{tenant.name}</td>
+                          <td className="px-5 py-4 text-slate-600">{tenant.plan?.name ?? "Cơ bản"}</td>
+                          <td className="px-5 py-4">
+                            <Badge tone={STATUS_TONE[tenant.status]} dot>
+                              {STATUS_LABEL[tenant.status]}
+                            </Badge>
+                          </td>
+                          <td className="px-5 py-4 text-slate-600">
+                            <div className="flex flex-col items-start gap-1.5">
+                              <span>
+                                {tenant.subscriptionEnd ? formatDate(tenant.subscriptionEnd) : "-"}
+                              </span>
+                              {subscriptionBadge && (
+                                <Badge tone={subscriptionBadge.tone} dot>
+                                  {subscriptionBadge.label}
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-5 py-4 text-right">
+                            <RowActions>
+                              <ActionButton onClick={() => void openTenantDetail(tenant.id)}>
+                                Chi tiết
+                              </ActionButton>
+                              <ActionButton
+                                tone={tenant.status === "ACTIVE" ? "danger" : "primary"}
+                                onClick={() => requestTenantToggle(tenant)}
+                              >
+                                {tenant.status === "ACTIVE" ? "Tạm ngưng" : "Kích hoạt"}
+                              </ActionButton>
+                            </RowActions>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -448,7 +493,7 @@ export default function AdminTenantsPage() {
                   ) : plans.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-5 py-12 text-center text-slate-500">
-                        Chưa có gói dịch vụ nào. Hãy nhấn "+ Thêm gói" để tạo mới.
+                        Chưa có gói dịch vụ nào. Hãy nhấn &quot;+ Thêm gói&quot; để tạo mới.
                       </td>
                     </tr>
                   ) : (
@@ -467,20 +512,17 @@ export default function AdminTenantsPage() {
                         </td>
                         <td className="px-5 py-4 text-slate-700">{p.durationDays ?? 30}</td>
                         <td className="px-5 py-4 text-right">
-                          <div className="inline-flex items-center gap-3">
-                            <button
-                              onClick={() => openEditPlanModal(p)}
-                              className="text-xs font-semibold text-slate-700 hover:text-blue-600 transition-colors"
-                            >
-                              Sửa
-                            </button>
-                            <button
-                              onClick={() => void handleDeactivatePlan(p)}
-                              className="text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors"
-                            >
-                              Ẩn gói
-                            </button>
-                          </div>
+                          <RowActions>
+                            <ActionButton onClick={() => openEditPlanModal(p)}>Sửa</ActionButton>
+                            {p.isActive !== false && (
+                              <ActionButton
+                                tone="danger"
+                                onClick={() => setDeactivateTarget(p)}
+                              >
+                                Ẩn gói
+                              </ActionButton>
+                            )}
+                          </RowActions>
                         </td>
                       </tr>
                     ))
@@ -642,6 +684,39 @@ export default function AdminTenantsPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        open={suspendTarget !== null}
+        title="Tạm ngưng hệ thống nhà trọ"
+        tone="danger"
+        confirmLabel="Tạm ngưng"
+        loading={loading}
+        onCancel={() => setSuspendTarget(null)}
+        onConfirm={() => suspendTarget && void toggleTenantStatus(suspendTarget)}
+        message={
+          <p>
+            Hệ thống <span className="font-semibold">{suspendTarget?.name}</span> sẽ bị tạm ngưng và
+            toàn bộ người dùng thuộc hệ thống này sẽ không thể đăng nhập cho đến khi được kích hoạt
+            lại.
+          </p>
+        }
+      />
+
+      <ConfirmDialog
+        open={deactivateTarget !== null}
+        title="Ẩn gói dịch vụ"
+        tone="danger"
+        confirmLabel="Ẩn gói"
+        loading={loading}
+        onCancel={() => setDeactivateTarget(null)}
+        onConfirm={() => void handleDeactivatePlan()}
+        message={
+          <p>
+            Gói <span className="font-semibold">{deactivateTarget?.name}</span> sẽ ngừng kích hoạt và
+            không còn hiển thị để đăng ký. Các Tenant đang sử dụng gói này không bị ảnh hưởng.
+          </p>
+        }
+      />
     </div>
   );
 }

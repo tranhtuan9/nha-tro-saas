@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
+import { currentBillingMonth, formatBillingMonth } from "@/lib/format";
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
+  const billingMonth = formatBillingMonth(currentBillingMonth());
+
   return (
     <div className="grid min-h-screen lg:grid-cols-12 bg-white selection:bg-blue-100 selection:text-blue-900">
       {/* Left Panel: High-agency editorial showcase (col-span-5) */}
@@ -17,53 +20,79 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
             </div>
             <div>
               <p className="text-base font-bold tracking-tight text-white">Quản lý nhà trọ</p>
-              <p className="text-xs text-slate-400">Nền tảng Cloud SaaS Multi-tenant</p>
+              <p className="text-xs text-slate-400">Nền tảng quản lý vận hành nhà trọ</p>
             </div>
           </Link>
         </div>
 
-        {/* Center: Live Product Value Fragment (Taste Skill pattern: Real artifact instead of generic claims) */}
+        {/* Center: Operational value fragment */}
         <div className="relative z-10 my-auto py-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/80 px-3 py-1 text-xs font-semibold text-blue-400 mb-6">
-            <span>Đối soát tức thì</span>
+            <span>Quản lý tập trung</span>
           </div>
 
           <h2 className="text-3xl font-extrabold leading-snug tracking-tight text-white">
-            Vận hành minh bạch. <br />
-            Thu tiền tự động qua VietQR.
+            Mọi việc vận hành nhà trọ. <br />
+            Trong một màn hình.
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-slate-400 max-w-sm">
-            Tự động chốt số điện nước, sinh hóa đơn đa kênh và gạch nợ tự động ngay khi người thuê chuyển khoản.
+            Theo dõi phòng, hợp đồng, chỉ số điện nước và phản ánh của người thuê. Dữ liệu được sắp xếp rõ ràng để bạn
+            xử lý công việc nhanh mỗi ngày.
           </p>
 
-          {/* Mini Real-data Card Simulation */}
+          {/* Mini operational card */}
           <div className="mt-8 rounded-xl border border-slate-800 bg-slate-800/60 p-4 backdrop-blur-sm">
-            <div className="flex items-center justify-between text-xs pb-3 border-b border-slate-700/60">
-              <span className="font-semibold text-slate-300">Nhà trọ Sunshine · Phòng 301</span>
-              <span className="rounded bg-emerald-950 px-2 py-0.5 text-[11px] font-bold text-emerald-400 border border-emerald-800/80">
-                Đã thanh toán
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-700/60">
+              <div>
+                <p className="text-xs font-semibold text-slate-300">Nhà trọ Bình Minh</p>
+                <p className="mt-0.5 text-[11px] text-slate-500">Không gian quản lý của bạn</p>
+              </div>
+              <span className="whitespace-nowrap rounded bg-emerald-950 px-2 py-0.5 text-[11px] font-bold text-emerald-400 border border-emerald-800/80">
+                Đang vận hành
               </span>
             </div>
-            <div className="mt-3 flex items-center justify-between">
-              <div>
-                <p className="text-[11px] text-slate-400">Hóa đơn kỳ T10/2026</p>
-                <p className="text-sm font-bold text-white mt-0.5">3.850.000 đ</p>
-              </div>
-              <div className="text-right">
-                <p className="text-[11px] text-slate-400">Cổng thanh toán</p>
-                <p className="text-xs font-semibold text-blue-400 mt-0.5">VietQR payOS</p>
-              </div>
-            </div>
+            <ul className="mt-3 space-y-3">
+              <li className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" />
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-medium text-slate-200">Phòng 302 · Hợp đồng</p>
+                    <p className="text-[11px] text-slate-500">Sắp đến ngày kết thúc</p>
+                  </div>
+                </div>
+                <span className="whitespace-nowrap text-[11px] font-semibold text-amber-400">Sắp hết hạn</span>
+              </li>
+              <li className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-sky-400" />
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-medium text-slate-200">Phòng 105 · Phản ánh mới</p>
+                    <p className="text-[11px] text-slate-500">Đang chờ chủ trọ phản hồi</p>
+                  </div>
+                </div>
+                <span className="whitespace-nowrap text-[11px] font-semibold text-sky-400">Mới</span>
+              </li>
+              <li className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-medium text-slate-200">Chỉ số điện nước</p>
+                    <p className="text-[11px] text-slate-500">Kỳ {billingMonth} đã nhập đủ</p>
+                  </div>
+                </div>
+                <span className="whitespace-nowrap text-[11px] font-semibold text-emerald-400">Hoàn tất</span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Bottom Security / Trust Proof */}
+        {/* Bottom trust proof */}
         <div className="relative z-10 pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>PostgreSQL Row-Level Security cô lập dữ liệu</span>
+            <span>Dữ liệu tách biệt theo từng chủ trọ</span>
           </div>
-          <span>Bảo mật 100%</span>
+          <span>Vận hành ổn định</span>
         </div>
       </div>
 
