@@ -6,7 +6,6 @@ import { createPayment, getApiErrorMessage, notifyApp } from "@/lib/api";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { useAuth } from "@/lib/auth-context";
 import {
   currentBillingMonth,
   formatBillingMonth,
@@ -21,7 +20,6 @@ import type {
 } from "@/lib/types";
 
 export default function RenterOverviewPage() {
-  const { user } = useAuth();
   const [payingId, setPayingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 

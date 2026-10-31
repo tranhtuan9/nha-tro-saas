@@ -34,10 +34,10 @@ import type {
 
 export default function CreateInvoicePage() {
   const router = useRouter();
-  const [propertyId, setPropertyId] = useState("");
-  const [contractId, setContractId] = useState("");
+  const [selectedPropertyId, setSelectedPropertyId] = useState("");
+  const [selectedContractId, setSelectedContractId] = useState("");
   const [billingMonth, setBillingMonth] = useState(currentBillingMonth());
-  const [selectedServices, setSelectedServices] = useState<Record<string, boolean>>({});
+  const [excludedServiceIds, setExcludedServiceIds] = useState<Record<string, boolean>>({});
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [preview, setPreview] = useState<InvoicePreview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,25 +45,27 @@ export default function CreateInvoicePage() {
   const [submitting, setSubmitting] = useState(false);
 
   const properties = usePagedList<Property>("/properties", { pageSize: 100 });
-  const activeContracts = usePagedList<Contract>("/contracts", {
-    pageSize: 100,
-    status: "ACTIVE",
-    propertyId: propertyId || undefined,
-  });
-  const rooms = usePagedList<Room>("/rooms", { pageSize: 100 });
-  const renters = usePagedList<Renter>("/renters", { pageSize: 100 });
-
   const activeProperties = useMemo(
     () => properties.rows.filter((property) => property.isActive),
     [properties.rows],
   );
 
-  // Mặc định chọn nhà trọ đầu tiên
-  useEffect(() => {
-    if (!propertyId && activeProperties.length > 0) {
-      setPropertyId(activeProperties[0].id);
-    }
-  }, [activeProperties, propertyId]);
+  // Tự suy diễn nhà trọ: ưu tiên lựa chọn của user, nếu chưa chọn thì lấy nhà trọ hoạt động đầu tiên
+  const propertyId = selectedPropertyId || activeProperties[0]?.id || "";
+
+  const activeContracts = usePagedList<Contract>("/contracts", {
+    pageSize: 100,
+    status: "ACTIVE",
+    propertyId: propertyId || undefined,
+  });
+
+  // Tự suy diễn hợp đồng: ưu tiên lựa chọn của user, nếu chưa chọn thì lấy hợp đồng đầu tiên
+  const contractId = (selectedContractId && activeContracts.rows.some((c) => c.id === selectedContractId))
+    ? selectedContractId
+    : activeContracts.rows[0]?.id || "";
+
+  const rooms = usePagedList<Room>("/rooms", { pageSize: 100 });
+  const renters = usePagedList<Renter>("/renters", { pageSize: 100 });
 
   const { data: servicesEnvelope } = useSWR(
     propertyId ? ["/services", propertyId] : null,
@@ -71,20 +73,6 @@ export default function CreateInvoicePage() {
     { revalidateOnFocus: false },
   );
   const services = useMemo<ServiceItem[]>(() => servicesEnvelope?.data ?? [], [servicesEnvelope]);
-
-  // Khởi tạo các dịch vụ mặc định được chọn với số lượng 1
-  useEffect(() => {
-    if (services.length > 0) {
-      const initialSelected: Record<string, boolean> = {};
-      const initialQty: Record<string, number> = {};
-      services.forEach((s) => {
-        initialSelected[s.id] = true;
-        initialQty[s.id] = 1;
-      });
-      setSelectedServices(initialSelected);
-      setQuantities(initialQty);
-    }
-  }, [services]);
 
   const { data: meterSheet, isLoading: meterLoading } = useSWR(
     propertyId && billingMonth ? ["/meter-readings/sheet", propertyId, billingMonth] : null,
@@ -102,13 +90,6 @@ export default function CreateInvoicePage() {
     [activeContracts.rows],
   );
 
-  // Mặc định chọn hợp đồng/phòng đầu tiên của nhà trọ
-  useEffect(() => {
-    if (activeContracts.rows.length > 0 && (!contractId || !activeContracts.rows.some((c) => c.id === contractId))) {
-      setContractId(activeContracts.rows[0].id);
-    }
-  }, [activeContracts.rows, contractId]);
-
   const selectedContract = contractId ? contractById.get(contractId) : undefined;
 
   const meterRow = useMemo(() => {
@@ -116,23 +97,23 @@ export default function CreateInvoicePage() {
     return meterSheet.data.find((row) => row.roomId === selectedContract.roomId) ?? null;
   }, [selectedContract, meterSheet]);
 
+  const isServiceSelected = (id: string) => !excludedServiceIds[id];
+  const toggleService = (id: string) => {
+    setExcludedServiceIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const serviceInputs = useMemo<CreateInvoiceInput["services"]>(() => {
-    const items: CreateInvoiceInput["services"] = [];
-    services.forEach((s) => {
-      if (selectedServices[s.id]) {
-        items.push({
-          serviceId: s.id,
-          quantity: quantities[s.id] ?? 1,
-        });
-      }
-    });
-    return items;
-  }, [services, selectedServices, quantities]);
+    return services
+      .filter((s) => !excludedServiceIds[s.id])
+      .map((s) => ({
+        serviceId: s.id,
+        quantity: quantities[s.id] ?? 1,
+      }));
+  }, [services, excludedServiceIds, quantities]);
 
   // Tự động gọi preview khi các thông tin thay đổi
   useEffect(() => {
     if (!contractId || !billingMonth) {
-      setPreview(null);
       return;
     }
     let cancelled = false;
@@ -162,6 +143,9 @@ export default function CreateInvoicePage() {
     };
   }, [contractId, billingMonth, serviceInputs]);
 
+  // Preview chỉ hiển thị khi có đầy đủ hợp đồng và kỳ
+  const activePreview = contractId && billingMonth ? preview : null;
+
   async function handleConfirmCreate() {
     if (!contractId || !billingMonth) {
       setError("Vui lòng chọn đầy đủ nhà trọ, phòng và kỳ hóa đơn");
@@ -182,10 +166,6 @@ export default function CreateInvoicePage() {
       setSubmitting(false);
     }
   }
-
-  const toggleService = (id: string) => {
-    setSelectedServices((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   return (
     <div className="space-y-6">
@@ -210,8 +190,8 @@ export default function CreateInvoicePage() {
                 <Select
                   value={propertyId}
                   onChange={(e) => {
-                    setPropertyId(e.target.value);
-                    setContractId("");
+                    setSelectedPropertyId(e.target.value);
+                    setSelectedContractId("");
                   }}
                 >
                   <option value="">-- Chọn nhà trọ --</option>
@@ -227,7 +207,7 @@ export default function CreateInvoicePage() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">Phòng</label>
                 <Select
                   value={contractId}
-                  onChange={(e) => setContractId(e.target.value)}
+                  onChange={(e) => setSelectedContractId(e.target.value)}
                   disabled={!propertyId || activeContracts.rows.length === 0}
                 >
                   <option value="">-- Chọn phòng --</option>
@@ -312,7 +292,7 @@ export default function CreateInvoicePage() {
                     </tr>
                   ) : (
                     services.map((s) => {
-                      const isChecked = Boolean(selectedServices[s.id]);
+                      const isChecked = isServiceSelected(s.id);
                       const qty = quantities[s.id] ?? 1;
                       const subtotal = Number(s.unitPrice) * qty;
 
@@ -367,29 +347,29 @@ export default function CreateInvoicePage() {
 
             {previewing ? (
               <div className="py-8 text-center text-xs text-slate-400">Đang tính toán lại...</div>
-            ) : preview ? (
+            ) : activePreview ? (
               <div className="space-y-3.5 text-sm">
                 <div className="flex justify-between items-center text-slate-600">
                   <span>Tiền phòng:</span>
-                  <span className="font-semibold text-slate-900">{formatCurrency(preview.rentAmount)}</span>
+                  <span className="font-semibold text-slate-900">{formatCurrency(activePreview.rentAmount)}</span>
                 </div>
                 <div className="flex justify-between items-center text-slate-600">
                   <span>Tiền điện ({meterRow?.current?.electricityUsage ?? 0} kWh):</span>
-                  <span className="font-semibold text-slate-900">{formatCurrency(preview.electricityAmount)}</span>
+                  <span className="font-semibold text-slate-900">{formatCurrency(activePreview.electricityAmount)}</span>
                 </div>
                 <div className="flex justify-between items-center text-slate-600">
                   <span>Tiền nước ({meterRow?.current?.waterUsage ?? 0} m³):</span>
-                  <span className="font-semibold text-slate-900">{formatCurrency(preview.waterAmount)}</span>
+                  <span className="font-semibold text-slate-900">{formatCurrency(activePreview.waterAmount)}</span>
                 </div>
                 <div className="flex justify-between items-center text-slate-600">
-                  <span>Dịch vụ ({preview.lineItems.length}):</span>
-                  <span className="font-semibold text-slate-900">{formatCurrency(preview.serviceAmount)}</span>
+                  <span>Dịch vụ ({activePreview.lineItems.length}):</span>
+                  <span className="font-semibold text-slate-900">{formatCurrency(activePreview.serviceAmount)}</span>
                 </div>
 
                 <div className="border-t border-slate-200 pt-4 flex justify-between items-baseline">
                   <span className="font-bold text-slate-900 text-base">Tổng cộng:</span>
                   <span className="text-2xl font-extrabold text-blue-600">
-                    {formatCurrency(preview.totalAmount)}
+                    {formatCurrency(activePreview.totalAmount)}
                   </span>
                 </div>
               </div>
@@ -408,7 +388,7 @@ export default function CreateInvoicePage() {
               <Button
                 className="flex-1 h-10 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => void handleConfirmCreate()}
-                disabled={!preview || previewing}
+                disabled={!activePreview || previewing}
                 loading={submitting}
               >
                 Xác nhận tạo hóa đơn
