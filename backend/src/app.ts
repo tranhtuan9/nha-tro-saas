@@ -11,6 +11,7 @@ import renterRoutes from './modules/renters/routes';
 import contractRoutes from './modules/contracts/routes';
 import serviceRoutes from './modules/services/routes';
 import meterReadingRoutes from './modules/meter-readings/routes';
+import invoiceRoutes from './modules/invoices/routes';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -53,6 +54,7 @@ app.use('/api/renters', renterRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/meter-readings', meterReadingRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 // 404 cho mọi route không khớp
 app.use(notFoundHandler);

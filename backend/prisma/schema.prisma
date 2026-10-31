@@ -267,7 +267,9 @@ model MeterReading {
 
   tenant  Tenant   @relation(fields: [tenantId], references: [id])
   room    Room     @relation(fields: [roomId], references: [id])
-  invoice Invoice?
+  // Một chỉ số có thể gắn nhiều hóa đơn theo lịch sử (hóa đơn hủy rồi lập lại);
+  // hành vi do partial unique index uq_invoice_active_meter_reading quyết định.
+  invoices Invoice[]
 
   @@unique([roomId, billingMonth], name: "uq_meter_room_month")
   @@index([tenantId])
@@ -298,7 +300,7 @@ model Invoice {
   id                   String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenantId             String        @map("tenant_id") @db.Uuid
   contractId           String        @map("contract_id") @db.Uuid
-  meterReadingId       String        @unique @map("meter_reading_id") @db.Uuid
+  meterReadingId       String        @map("meter_reading_id") @db.Uuid
   billingMonth         DateTime      @map("billing_month") @db.Date
   electricityUnitPrice Decimal       @map("electricity_unit_price") @db.Decimal(12, 0)
   waterUnitPrice       Decimal       @map("water_unit_price") @db.Decimal(12, 0)
@@ -319,7 +321,10 @@ model Invoice {
   lineItems    InvoiceLineItem[]
   payments     Payment[]
 
-  @@unique([contractId, billingMonth], name: "uq_invoice_contract_month")
+  // Cho phép hủy rồi lập lại: mỗi hợp đồng một hóa đơn CHƯA HỦY mỗi kỳ,
+  // mỗi chỉ số một hóa đơn CHƯA HỦY (viết bằng SQL migration):
+  //   uq_invoice_active_contract_month  UNIQUE (contract_id, billing_month) WHERE status <> 'CANCELLED'
+  //   uq_invoice_active_meter_reading   UNIQUE (meter_reading_id) WHERE status <> 'CANCELLED'
   @@index([tenantId])
   @@index([status])
   @@map("invoices")
