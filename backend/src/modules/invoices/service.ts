@@ -1,6 +1,7 @@
-import { Prisma, ContractStatus, InvoiceStatus } from '@prisma/client';
+import { Prisma, ContractStatus, InvoiceStatus, PaymentStatus } from '@prisma/client';
 import { getTenantDb, TenantContext } from '../../lib/db';
 import { ApiError } from '../../lib/ApiError';
+import { getPaymentGateway, PaymentGatewayError } from '../../lib/paymentGateway';
 import { getCurrentYearMonth, getTodayDateOnly } from '../../lib/timezone';
 import {
   CreateInvoiceInput,
@@ -543,10 +544,40 @@ export async function createInvoice(context: TenantContext, input: CreateInvoice
 /**
  * UC19: hủy hóa đơn. Chỉ hóa đơn chưa thanh toán; PAID -> 409; đã hủy -> idempotent.
  * Hủy giải phóng chỉ số và cho phép lập lại trong cùng kỳ.
+ * Hóa đơn đang có link thanh toán PENDING: hủy link ở payOS trước; cổng thanh toán
+ * gián đoạn -> 409 INVOICE_HAS_PENDING_PAYMENT (không hủy khi link còn sống bên payOS).
  */
 export async function cancelInvoice(context: TenantContext, invoiceId: string) {
   const db = getTenantDb(context);
   const today = getTodayDateOnly();
+
+  // Đọc Payment PENDING bằng app_user + RLS (không thấy nếu hóa đơn khác Tenant).
+  const pending = await db.payment.findFirst({
+    where: { invoiceId, status: PaymentStatus.PENDING },
+    select: { id: true, orderCode: true },
+  });
+  if (pending) {
+    try {
+      await getPaymentGateway().cancelPaymentLink(
+        Number(pending.orderCode),
+        'Hóa đơn bị hủy bởi chủ nhà'
+      );
+    } catch (err) {
+      if (err instanceof PaymentGatewayError) {
+        console.error('[InvoiceCancelPendingPayment]', err.message);
+        throw ApiError.conflict(
+          'INVOICE_HAS_PENDING_PAYMENT',
+          'Hóa đơn đang có giao dịch thanh toán chờ xử lý. Vui lòng thử lại sau ít phút.'
+        );
+      }
+      throw err;
+    }
+    // Ghi ngoài transaction nghiệp vụ (không kéo dài transaction khi gọi cổng thanh toán).
+    await db.payment.update({
+      where: { id: pending.id },
+      data: { status: PaymentStatus.CANCELLED },
+    });
+  }
 
   return db.tenantTransaction(async (tx) => {
     const invoice = await tx.invoice.findUnique({

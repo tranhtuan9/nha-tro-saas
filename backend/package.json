@@ -12,7 +12,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
     "seed": "tsx prisma/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "payos:smoke": "tsx scripts/payos-smoke.ts",
+    "payos:confirm-webhook": "tsx scripts/payos-confirm-webhook.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -27,7 +29,8 @@
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^10.1.1",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "@payos/node": "2.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

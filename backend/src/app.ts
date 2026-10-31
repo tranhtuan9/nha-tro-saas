@@ -12,6 +12,8 @@ import contractRoutes from './modules/contracts/routes';
 import serviceRoutes from './modules/services/routes';
 import meterReadingRoutes from './modules/meter-readings/routes';
 import invoiceRoutes from './modules/invoices/routes';
+import paymentRoutes from './modules/payments/routes';
+import { handlePayosWebhook } from './modules/payments/webhook';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -36,6 +38,10 @@ app.use(
   })
 );
 
+// Webhook payOS: đăng ký TRƯỚC express.json() chung — JSON riêng, giới hạn 16kb;
+// chữ ký xác thực bằng SDK trên object đã parse nên không cần giữ raw body.
+app.post('/api/webhooks/payos', express.json({ limit: '16kb' }), handlePayosWebhook);
+
 // Middlewares cơ bản
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -55,6 +61,7 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/meter-readings', meterReadingRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 404 cho mọi route không khớp
 app.use(notFoundHandler);

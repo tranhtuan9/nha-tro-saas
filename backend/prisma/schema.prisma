@@ -356,6 +356,8 @@ model Payment {
   invoiceId     String        @map("invoice_id") @db.Uuid
   orderCode     BigInt        @unique @map("order_code")
   paymentLinkId String?       @map("payment_link_id") @db.VarChar(100)
+  // SDK payOS chỉ trả checkoutUrl khi tạo link; lưu lại để trả client khi PENDING còn hạn.
+  checkoutUrl   String?       @map("checkout_url") @db.Text
   amount        Decimal       @db.Decimal(12, 0)
   status        PaymentStatus @default(PENDING)
   paidAt        DateTime?     @map("paid_at") @db.Timestamptz
