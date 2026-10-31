@@ -106,9 +106,9 @@ export function ProfileView() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        breadcrumb="Tài khoản / Thông tin Cá nhân"
+        breadcrumb="Hồ sơ cá nhân"
         title="Hồ sơ cá nhân"
-        description="Cập nhật thông tin cá nhân và mật khẩu đăng nhập."
+        description="Trang xem/sửa thông tin cá nhân và đổi mật khẩu."
       />
 
       <div className="grid gap-4 lg:grid-cols-2">

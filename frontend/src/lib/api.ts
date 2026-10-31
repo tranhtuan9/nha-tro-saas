@@ -338,7 +338,9 @@ export async function markAllNotificationsRead(): Promise<UnreadCount> {
 
 /** UC21–23: trò chuyện với Trợ lý AI; trả câu trả lời và đề xuất (nếu có) chờ xác nhận. */
 export async function aiChat(message: string, history: AiHistoryEntry[]): Promise<AiChatReply> {
-  const res = await api.post<AiChatReply>("/ai/chat", { message, history });
+  // Backend cho phép một lượt AI xử lý tối đa 30 giây; cần chờ lâu hơn để không
+  // hủy request ở trình duyệt và hiển thị nhầm thành lỗi kết nối máy chủ.
+  const res = await api.post<AiChatReply>("/ai/chat", { message, history }, { timeout: 35_000 });
   return res.data;
 }
 

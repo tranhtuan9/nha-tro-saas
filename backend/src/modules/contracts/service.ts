@@ -25,6 +25,21 @@ const contractSelect = {
 } satisfies Prisma.ContractSelect;
 
 type ContractRow = Prisma.ContractGetPayload<{ select: typeof contractSelect }>;
+// List select: kem room + propertyName de frontend hien thi ten nha tro, so phong.
+const contractListSelect = {
+  ...contractSelect,
+  room: {
+    select: {
+      id: true,
+      roomCode: true,
+      propertyId: true,
+      property: { select: { id: true, name: true } },
+    },
+  },
+} satisfies Prisma.ContractSelect;
+
+type ContractListRow = Prisma.ContractGetPayload<{ select: typeof contractListSelect }>;
+
 
 // Q2: chi tiết trả kèm room (phẳng, có propertyName) và renter (KHÔNG passwordHash/nationalId).
 const contractDetailSelect = {
@@ -50,6 +65,20 @@ function serializeContract(contract: ContractRow) {
     ...contract,
     monthlyRent: contract.monthlyRent.toString(),
     deposit: contract.deposit.toString(),
+  };
+}
+
+
+function serializeContractList(contract: ContractListRow) {
+  const { room, ...rest } = contract;
+  return {
+    ...serializeContract(rest),
+    room: {
+      id: room.id,
+      roomCode: room.roomCode,
+      propertyId: room.propertyId,
+      propertyName: room.property.name,
+    },
   };
 }
 
@@ -98,14 +127,14 @@ export async function listContracts(context: TenantContext, query: ContractListQ
   const total = await db.contract.count({ where });
   const rows = await db.contract.findMany({
     where,
-    select: contractSelect,
+    select: contractListSelect,
     orderBy: { createdAt: 'desc' },
     skip: (query.page - 1) * query.pageSize,
     take: query.pageSize,
   });
 
   return {
-    data: rows.map(serializeContract),
+    data: rows.map(serializeContractList),
     pagination: { page: query.page, pageSize: query.pageSize, total },
   };
 }

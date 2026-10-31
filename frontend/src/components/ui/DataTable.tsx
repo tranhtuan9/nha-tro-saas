@@ -154,13 +154,13 @@ export function DataTable<T>({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface-container/70">
+            <tr className="border-b border-border bg-slate-50/75">
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
                   className={cn(
-                    "whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted",
+                    "whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted",
                     ALIGN_CLASSES[column.align ?? "left"],
                     column.headerClassName,
                   )}
@@ -170,7 +170,7 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {isLoading && <TableSkeleton columnCount={columnCount} loadingRows={loadingRows} />}
             {!isLoading && !!error && (
               <StateRow
@@ -202,7 +202,7 @@ export function DataTable<T>({
                 <tr
                   key={rowKey(row)}
                   className={cn(
-                    "border-t border-border transition-colors hover:bg-surface-container/50",
+                    "transition-colors hover:bg-slate-50/80",
                     rowClassName?.(row),
                   )}
                 >

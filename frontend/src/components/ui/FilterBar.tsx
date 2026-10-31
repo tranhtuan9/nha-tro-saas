@@ -42,7 +42,7 @@ export function SearchInput({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder ?? "Tìm kiếm..."}
         aria-label={ariaLabel ?? placeholder ?? "Tìm kiếm"}
-        className={cn(INPUT_BASE, "border-border pl-9 [&::-webkit-search-cancel-button]:cursor-pointer")}
+        className={cn(INPUT_BASE, "h-10 border-border pl-9 [&::-webkit-search-cancel-button]:cursor-pointer")}
       />
     </div>
   );

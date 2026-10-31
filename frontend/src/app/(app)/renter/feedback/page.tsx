@@ -68,7 +68,7 @@ export default function RenterFeedbackPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Phản ánh" description="Gửi phản ánh về cơ sở vật chất và dịch vụ." />
+      <PageHeader breadcrumb="Người thuê phòng / Gửi phản ánh" title="Gửi phản ánh" description="Gửi sự cố và theo dõi phản hồi từ chủ trọ." />
 
       {error && <Alert tone="error">{error}</Alert>}
       {listError && <Alert tone="error">{listError}</Alert>}
