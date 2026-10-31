@@ -9,6 +9,7 @@ import propertyRoutes from './modules/properties/routes';
 import roomRoutes from './modules/rooms/routes';
 import renterRoutes from './modules/renters/routes';
 import contractRoutes from './modules/contracts/routes';
+import serviceRoutes from './modules/services/routes';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -49,6 +50,7 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/renters', renterRoutes);
 app.use('/api/contracts', contractRoutes);
+app.use('/api/services', serviceRoutes);
 
 // 404 cho mọi route không khớp
 app.use(notFoundHandler);
