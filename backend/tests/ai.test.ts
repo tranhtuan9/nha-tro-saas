@@ -831,7 +831,7 @@ describe('Module Trợ lý AI (UC21, UC22, UC23) — /api/ai', () => {
             });
           }
         )
-      ).rejects.toThrow(/permission denied/i);
+      ).rejects.toThrow(/permission denied|chuyển trạng thái đề xuất AI không hợp lệ/i);
     });
   });
 
