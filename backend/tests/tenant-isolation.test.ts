@@ -246,7 +246,7 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
     expect(properties.length).toBe(0);
   });
 
-  it('6. audit_logs: app_user chỉ UPDATE được vòng đời đề xuất AI, không DELETE', async () => {
+  it('6. audit_logs: app_user không UPDATE và không DELETE được; bảo toàn nhật ký kiểm toán', async () => {
     const dbA = getTenantDb({
       tenantId: tenantAId,
       userId: landlordAId,
