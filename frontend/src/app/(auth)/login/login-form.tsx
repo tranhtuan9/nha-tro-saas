@@ -17,7 +17,16 @@ export function LoginForm() {
   const { login, token, user } = useAuth();
 
   const nextParam = searchParams.get("next");
-  const nextPath = nextParam && nextParam.startsWith("/") ? nextParam : null;
+  const nextPath =
+    nextParam &&
+    nextParam.startsWith("/") &&
+    nextParam !== "/" &&
+    !nextParam.startsWith("/login") &&
+    !nextParam.startsWith("/register") &&
+    !nextParam.startsWith("/forgot-password") &&
+    !nextParam.startsWith("/reset-password")
+      ? nextParam
+      : null;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

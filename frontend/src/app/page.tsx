@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { LandingNav } from "@/components/LandingNav";
 
 export const metadata = {
   title: "Quản lý nhà trọ - Nền tảng quản lý vận hành nhà trọ thông minh",
@@ -16,20 +17,7 @@ export default function LandingPage() {
           <Link href="/" className="flex items-center gap-2 group">
             <Logo className="h-8 w-auto text-blue-600 transition-transform group-hover:scale-105" />
           </Link>
-          <nav className="flex items-center gap-3 sm:gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 transition-colors"
-            >
-              Đăng nhập
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:translate-y-px transition-all"
-            >
-              Bắt đầu miễn phí
-            </Link>
-          </nav>
+          <LandingNav />
         </div>
       </header>
 

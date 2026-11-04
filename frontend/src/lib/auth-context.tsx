@@ -76,9 +76,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     function onSessionExpired() {
       void globalMutate(ME_KEY, undefined, { revalidate: false });
-      if (!window.location.pathname.startsWith("/login")) {
-        const next = encodeURIComponent(window.location.pathname + window.location.search);
-        router.replace(`/login?next=${next}`);
+      const current = window.location.pathname;
+      if (!current.startsWith("/login")) {
+        const next =
+          current && current !== "/"
+            ? `?next=${encodeURIComponent(current + window.location.search)}`
+            : "";
+        router.replace(`/login${next}`);
       }
     }
     window.addEventListener("app:session-expired", onSessionExpired);
