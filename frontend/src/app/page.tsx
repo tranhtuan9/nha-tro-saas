@@ -290,12 +290,54 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-50 py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© 2026 Quản lý nhà trọ. Nền tảng quản lý vận hành đa người dùng (Multi-tenant SaaS).</p>
-          <div className="flex gap-6">
-            <Link href="/login" className="hover:text-slate-800 transition-colors">Đăng nhập</Link>
-            <Link href="/register" className="hover:text-slate-800 transition-colors">Đăng ký</Link>
+      <footer className="border-t border-slate-200 bg-slate-50 py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-slate-200 text-xs text-slate-600">
+            <div className="md:col-span-6 space-y-2">
+              <p className="font-bold text-slate-800 text-sm">Nền tảng Quản lý nhà trọ SaaS</p>
+              <p className="text-slate-500 max-w-md">
+                Giải pháp số hóa toàn diện dành cho chủ nhà trọ và người thuê phòng: Tự động hóa hóa đơn, chốt số điện nước, thanh toán QR payOS và Trợ lý AI.
+              </p>
+              <p className="text-slate-500">
+                Hỗ trợ kỹ thuật: <span className="font-medium text-slate-700">hotro@quanlynhatro.vn</span> · Hotline: <span className="font-medium text-slate-700">1900 6868</span>
+              </p>
+            </div>
+            <div className="md:col-span-3 space-y-2">
+              <p className="font-semibold text-slate-800">Quy định & Pháp lý</p>
+              <ul className="space-y-1.5 text-slate-500">
+                <li>
+                  <Link href="/terms" className="hover:text-blue-600 transition-colors">
+                    Điều khoản dịch vụ
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="hover:text-blue-600 transition-colors">
+                    Chính sách bảo vệ dữ liệu cá nhân
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div className="md:col-span-3 space-y-2">
+              <p className="font-semibold text-slate-800">Truy cập nhanh</p>
+              <ul className="space-y-1.5 text-slate-500">
+                <li>
+                  <Link href="/login" className="hover:text-blue-600 transition-colors">
+                    Đăng nhập hệ thống
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/register" className="hover:text-blue-600 transition-colors">
+                    Đăng ký dùng thử cho chủ trọ
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <p>© 2026 Quản lý nhà trọ. Nền tảng quản lý vận hành đa người dùng (Multi-tenant SaaS).</p>
+            <p className="text-[11px] text-slate-400">
+              Tuân thủ Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 & Luật Giao dịch điện tử.
+            </p>
           </div>
         </div>
       </footer>

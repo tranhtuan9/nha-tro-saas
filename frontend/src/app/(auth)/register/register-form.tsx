@@ -40,7 +40,7 @@ export function RegisterForm() {
     }
     if (password.length < 6) nextErrors.password = "Mật khẩu phải từ 6 ký tự trở lên";
     if (confirmPassword !== password) nextErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
-    if (!agreed) nextErrors.agreed = "Bạn cần đồng ý với điều khoản sử dụng";
+    if (!agreed) nextErrors.agreed = "Bạn cần đồng ý với Điều khoản dịch vụ và Chính sách bảo vệ dữ liệu cá nhân";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -160,7 +160,26 @@ export function RegisterForm() {
           <Checkbox
             checked={agreed}
             onChange={(event) => setAgreed(event.target.checked)}
-            label="Tôi đồng ý với quy định vận hành và điều khoản dịch vụ"
+            label={
+            <span>
+              Tôi đồng ý với{" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              >
+                Điều khoản dịch vụ
+              </Link>{" "}
+              và{" "}
+              <Link
+                href="/privacy"
+                target="_blank"
+                className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              >
+                Chính sách bảo vệ dữ liệu cá nhân
+              </Link>
+            </span>
+          }
           />
           {errors.agreed && <p className="mt-1 text-xs text-danger">{errors.agreed}</p>}
         </div>

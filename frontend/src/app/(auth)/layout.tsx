@@ -119,8 +119,17 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           <div className="w-full max-w-[440px]">{children}</div>
         </main>
 
-        <footer className="px-6 pb-6 text-center text-xs text-slate-400">
-          © 2026 Quản lý nhà trọ · Nền tảng quản lý vận hành SaaS
+        <footer className="px-6 pb-6 text-center text-xs text-slate-400 space-y-1.5">
+          <p>© 2026 Quản lý nhà trọ · Nền tảng quản lý vận hành SaaS</p>
+          <div className="flex justify-center gap-3 text-[11px] text-slate-500">
+            <Link href="/terms" className="hover:text-slate-700 transition-colors">
+              Điều khoản dịch vụ
+            </Link>
+            <span>·</span>
+            <Link href="/privacy" className="hover:text-slate-700 transition-colors">
+              Chính sách bảo vệ dữ liệu cá nhân
+            </Link>
+          </div>
         </footer>
       </div>
     </div>

@@ -184,7 +184,7 @@ function RenterFormModal({ mode, renter, open, onClose, onSaved }: RenterFormMod
         )}
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Số điện thoại" htmlFor="renter-phone" hint="Không bắt buộc">
+        <Field label="Số điện thoại" htmlFor="renter-phone">
           <TextInput
             id="renter-phone"
             value={phone}
@@ -193,7 +193,7 @@ function RenterFormModal({ mode, renter, open, onClose, onSaved }: RenterFormMod
             placeholder="0987 123 456"
           />
         </Field>
-        <Field label="Số CCCD" htmlFor="renter-nationalid" hint="Không bắt buộc">
+        <Field label="Số CCCD" htmlFor="renter-nationalid">
           <TextInput
             id="renter-nationalid"
             value={nationalId}
@@ -416,7 +416,7 @@ function ContractFormModal({
           />
         </Field>
       </div>
-      <Field label="Điều khoản" htmlFor="contract-terms" hint="Không bắt buộc">
+      <Field label="Điều khoản" htmlFor="contract-terms">
         <Textarea
           id="contract-terms"
           value={terms}
@@ -1018,7 +1018,7 @@ export default function RentersPage() {
           void confirmTerminate();
         }}
       >
-        <Field label="Lý do chấm dứt" htmlFor="terminate-reason" hint="Không bắt buộc, tối đa 500 ký tự">
+        <Field label="Lý do chấm dứt" htmlFor="terminate-reason">
           <Textarea
             id="terminate-reason"
             value={terminateReason}

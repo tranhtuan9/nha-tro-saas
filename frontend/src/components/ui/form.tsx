@@ -85,7 +85,7 @@ export function Checkbox({
   label,
   className,
   ...rest
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: React.ReactNode }) {
   const id = useId();
   return (
     <label htmlFor={id} className={cn("flex cursor-pointer items-center gap-2 text-sm text-ink", className)}>

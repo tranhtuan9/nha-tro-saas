@@ -158,7 +158,7 @@ function PropertyFormModal({ mode, property, open, onClose, onSaved }: PropertyF
               error={Boolean(errors.address)}
             />
           </Field>
-          <Field label="Mô tả" htmlFor="property-description" hint="Không bắt buộc">
+          <Field label="Mô tả" htmlFor="property-description">
             <Textarea
               id="property-description"
               value={description}
@@ -324,7 +324,7 @@ function RoomFormModal({ mode, room, properties, open, onClose, onSaved }: RoomF
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Diện tích (m²)" htmlFor="room-area" hint="Không bắt buộc" error={errors.area}>
+        <Field label="Diện tích (m²)" htmlFor="room-area" error={errors.area}>
           <TextInput
             id="room-area"
             inputMode="decimal"
@@ -334,7 +334,7 @@ function RoomFormModal({ mode, room, properties, open, onClose, onSaved }: RoomF
             error={Boolean(errors.area)}
           />
         </Field>
-        <Field label="Mô tả" htmlFor="room-description" hint="Không bắt buộc">
+        <Field label="Mô tả" htmlFor="room-description">
           <TextInput
             id="room-description"
             value={description}

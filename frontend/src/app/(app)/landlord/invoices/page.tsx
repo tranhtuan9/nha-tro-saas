@@ -297,7 +297,7 @@ function InvoiceCreateModal({ open, onClose, onCreated }: InvoiceCreateModalProp
               }}
             />
           </Field>
-          <Field label="Hạn thanh toán" htmlFor="invoice-due" hint="Không bắt buộc — mặc định theo cấu hình">
+          <Field label="Hạn thanh toán" htmlFor="invoice-due">
             <TextInput
               id="invoice-due"
               type="date"

@@ -354,6 +354,11 @@ export default function AiPage() {
                 Gửi
               </Button>
             </form>
+            <div className="border-t border-border/50 bg-surface-container/20 px-3 py-1.5 text-center">
+              <p className="text-[11px] text-muted">
+                Trợ lý AI tự động · Thông tin chỉ mang tính tham khảo · Luôn kiểm tra kỹ trước khi xác nhận thao tác.
+              </p>
+            </div>
           </div>
           {error && (
             <div className="mt-3">
