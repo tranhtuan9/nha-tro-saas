@@ -65,7 +65,7 @@ async function main() {
 
   // 2. Tạo tài khoản Admin mặc định
   console.log('2. Khởi tạo tài khoản Admin mặc định...');
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@example.com';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'adminnhatro@gmail.com';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'change_me';
   const bcryptRounds = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
 

@@ -413,7 +413,7 @@ async function main(): Promise<void> {
 
   const admin = await createUser({
     tenantId: null,
-    email: 'admin@demo.vn',
+    email: 'adminnhatro@gmail.com',
     fullName: 'Quản trị viên Demo',
     role: UserRole.ADMIN,
     lastLoginAt: minutesAgo(30),
@@ -457,7 +457,7 @@ async function main(): Promise<void> {
 
   const binhLandlord = await createUser({
     tenantId: binhMinh.id,
-    email: 'landlord.binhminh@demo.vn',
+    email: 'nguyenvanbinh@gmail.com',
     fullName: 'Nguyễn Văn Bình',
     role: UserRole.LANDLORD,
     phone: '0901000001',
@@ -466,7 +466,7 @@ async function main(): Promise<void> {
   });
   await createUser({
     tenantId: binhMinh.id,
-    email: 'landlord.locked@demo.vn',
+    email: 'dovankhoa@gmail.com',
     fullName: 'Đỗ Văn Khóa',
     role: UserRole.LANDLORD,
     phone: '0901000002',
@@ -475,7 +475,7 @@ async function main(): Promise<void> {
   });
   const hoaMaiLandlord = await createUser({
     tenantId: hoaMai.id,
-    email: 'landlord.hoamai@demo.vn',
+    email: 'tranthihoa@gmail.com',
     fullName: 'Trần Thị Hoa',
     role: UserRole.LANDLORD,
     phone: '0902000001',
@@ -484,7 +484,7 @@ async function main(): Promise<void> {
   });
   const minhAnLandlord = await createUser({
     tenantId: minhAn.id,
-    email: 'landlord.minhan@demo.vn',
+    email: 'leminhan@gmail.com',
     fullName: 'Lê Minh An',
     role: UserRole.LANDLORD,
     phone: '0903000001',
@@ -493,7 +493,7 @@ async function main(): Promise<void> {
   });
   const tanPhuLandlord = await createUser({
     tenantId: tanPhu.id,
-    email: 'landlord.tanphu@demo.vn',
+    email: 'phamtanphu@gmail.com',
     fullName: 'Phạm Tấn Phú',
     role: UserRole.LANDLORD,
     phone: '0904000001',
@@ -502,7 +502,7 @@ async function main(): Promise<void> {
   });
   await createUser({
     tenantId: phuQuy.id,
-    email: 'landlord.phuquy@demo.vn',
+    email: 'vophuquy@gmail.com',
     fullName: 'Võ Phú Quý',
     role: UserRole.LANDLORD,
     phone: '0905000001',
@@ -512,7 +512,7 @@ async function main(): Promise<void> {
 
   const an = await createUser({
     tenantId: binhMinh.id,
-    email: 'renter.an@demo.vn',
+    email: 'nguyenhoaian@gmail.com',
     fullName: 'Nguyễn Hoài An',
     role: UserRole.RENTER,
     phone: '0912000001',
@@ -521,7 +521,7 @@ async function main(): Promise<void> {
   });
   const binh = await createUser({
     tenantId: binhMinh.id,
-    email: 'renter.binh@demo.vn',
+    email: 'tranthanhbinh@gmail.com',
     fullName: 'Trần Thanh Bình',
     role: UserRole.RENTER,
     phone: '0912000002',
@@ -530,7 +530,7 @@ async function main(): Promise<void> {
   });
   const chi = await createUser({
     tenantId: binhMinh.id,
-    email: 'renter.chi@demo.vn',
+    email: 'lethichi@gmail.com',
     fullName: 'Lê Thị Chi',
     role: UserRole.RENTER,
     phone: '0912000003',
@@ -539,7 +539,7 @@ async function main(): Promise<void> {
   });
   const dung = await createUser({
     tenantId: binhMinh.id,
-    email: 'renter.dung@demo.vn',
+    email: 'phamvandung@gmail.com',
     fullName: 'Phạm Văn Dũng',
     role: UserRole.RENTER,
     phone: '0912000004',
@@ -548,7 +548,7 @@ async function main(): Promise<void> {
   });
   const em = await createUser({
     tenantId: binhMinh.id,
-    email: 'renter.em@demo.vn',
+    email: 'hoangthiem@gmail.com',
     fullName: 'Hoàng Thị Em',
     role: UserRole.RENTER,
     phone: '0912000005',
@@ -557,7 +557,7 @@ async function main(): Promise<void> {
   });
   const giang = await createUser({
     tenantId: binhMinh.id,
-    email: 'renter.giang@demo.vn',
+    email: 'nguyentruonggiang@gmail.com',
     fullName: 'Nguyễn Trường Giang',
     role: UserRole.RENTER,
     phone: '0912000006',
@@ -566,7 +566,7 @@ async function main(): Promise<void> {
   });
   const ha = await createUser({
     tenantId: binhMinh.id,
-    email: 'renter.ha@demo.vn',
+    email: 'buithuha@gmail.com',
     fullName: 'Bùi Thu Hà',
     role: UserRole.RENTER,
     phone: '0912000007',
@@ -574,7 +574,7 @@ async function main(): Promise<void> {
   });
   await createUser({
     tenantId: binhMinh.id,
-    email: 'renter.locked@demo.vn',
+    email: 'ngovankhoa@gmail.com',
     fullName: 'Ngô Văn Khóa',
     role: UserRole.RENTER,
     phone: '0912000008',
@@ -583,7 +583,7 @@ async function main(): Promise<void> {
   });
   const hoa = await createUser({
     tenantId: hoaMai.id,
-    email: 'renter.hoa@demo.vn',
+    email: 'dangthihoa@gmail.com',
     fullName: 'Đặng Thị Hoa',
     role: UserRole.RENTER,
     phone: '0913000001',
@@ -592,7 +592,7 @@ async function main(): Promise<void> {
   });
   const minh = await createUser({
     tenantId: minhAn.id,
-    email: 'renter.minh@demo.vn',
+    email: 'trinhnhatminh@gmail.com',
     fullName: 'Trịnh Nhật Minh',
     role: UserRole.RENTER,
     phone: '0914000001',
@@ -601,7 +601,7 @@ async function main(): Promise<void> {
   });
   const tan = await createUser({
     tenantId: tanPhu.id,
-    email: 'renter.tan@demo.vn',
+    email: 'lytan@gmail.com',
     fullName: 'Lý Tấn',
     role: UserRole.RENTER,
     phone: '0915000001',
@@ -1430,23 +1430,23 @@ async function main(): Promise<void> {
   console.log(`Mật khẩu chung: ${DEMO_PASSWORD}`);
   console.table([
     { email: admin.email, vaiTro: 'ADMIN', tenant: '-', ghiChu: 'Quản trị hệ thống' },
-    { email: 'landlord.binhminh@demo.vn', vaiTro: 'LANDLORD', tenant: binhMinh.name, ghiChu: 'Đủ dữ liệu, chạm giới hạn gói Cơ bản' },
-    { email: 'landlord.locked@demo.vn', vaiTro: 'LANDLORD', tenant: binhMinh.name, ghiChu: 'Tài khoản bị khóa' },
-    { email: 'landlord.hoamai@demo.vn', vaiTro: 'LANDLORD', tenant: hoaMai.name, ghiChu: 'Gói sắp hết hạn (5 ngày)' },
-    { email: 'landlord.minhan@demo.vn', vaiTro: 'LANDLORD', tenant: minhAn.name, ghiChu: 'Gói đã hết hạn' },
-    { email: 'landlord.tanphu@demo.vn', vaiTro: 'LANDLORD', tenant: tanPhu.name, ghiChu: 'Tenant bị tạm ngưng' },
-    { email: 'landlord.phuquy@demo.vn', vaiTro: 'LANDLORD', tenant: phuQuy.name, ghiChu: 'Tenant mới, chưa có dữ liệu' },
-    { email: 'renter.an@demo.vn', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng hiệu lực, có hóa đơn chờ thu' },
-    { email: 'renter.binh@demo.vn', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng sắp hết hạn' },
-    { email: 'renter.chi@demo.vn', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng quá ngày kết thúc, hóa đơn quá hạn' },
-    { email: 'renter.dung@demo.vn', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng đã chấm dứt' },
-    { email: 'renter.em@demo.vn', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng đã kết thúc' },
-    { email: 'renter.giang@demo.vn', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hóa đơn đã thanh toán' },
-    { email: 'renter.ha@demo.vn', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Chưa từng đăng nhập' },
-    { email: 'renter.locked@demo.vn', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Tài khoản bị khóa' },
-    { email: 'renter.hoa@demo.vn', vaiTro: 'RENTER', tenant: hoaMai.name, ghiChu: 'Tenant sắp hết hạn' },
-    { email: 'renter.minh@demo.vn', vaiTro: 'RENTER', tenant: minhAn.name, ghiChu: 'Tenant đã hết hạn' },
-    { email: 'renter.tan@demo.vn', vaiTro: 'RENTER', tenant: tanPhu.name, ghiChu: 'Tenant bị tạm ngưng' },
+    { email: 'nguyenvanbinh@gmail.com', vaiTro: 'LANDLORD', tenant: binhMinh.name, ghiChu: 'Đủ dữ liệu, chạm giới hạn gói Cơ bản' },
+    { email: 'dovankhoa@gmail.com', vaiTro: 'LANDLORD', tenant: binhMinh.name, ghiChu: 'Tài khoản bị khóa' },
+    { email: 'tranthihoa@gmail.com', vaiTro: 'LANDLORD', tenant: hoaMai.name, ghiChu: 'Gói sắp hết hạn (5 ngày)' },
+    { email: 'leminhan@gmail.com', vaiTro: 'LANDLORD', tenant: minhAn.name, ghiChu: 'Gói đã hết hạn' },
+    { email: 'phamtanphu@gmail.com', vaiTro: 'LANDLORD', tenant: tanPhu.name, ghiChu: 'Tenant bị tạm ngưng' },
+    { email: 'vophuquy@gmail.com', vaiTro: 'LANDLORD', tenant: phuQuy.name, ghiChu: 'Tenant mới, chưa có dữ liệu' },
+    { email: 'nguyenhoaian@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng hiệu lực, có hóa đơn chờ thu' },
+    { email: 'tranthanhbinh@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng sắp hết hạn' },
+    { email: 'lethichi@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng quá ngày kết thúc, hóa đơn quá hạn' },
+    { email: 'phamvandung@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng đã chấm dứt' },
+    { email: 'hoangthiem@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng đã kết thúc' },
+    { email: 'nguyentruonggiang@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hóa đơn đã thanh toán' },
+    { email: 'buithuha@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Chưa từng đăng nhập' },
+    { email: 'ngovankhoa@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Tài khoản bị khóa' },
+    { email: 'dangthihoa@gmail.com', vaiTro: 'RENTER', tenant: hoaMai.name, ghiChu: 'Tenant sắp hết hạn' },
+    { email: 'trinhnhatminh@gmail.com', vaiTro: 'RENTER', tenant: minhAn.name, ghiChu: 'Tenant đã hết hạn' },
+    { email: 'lytan@gmail.com', vaiTro: 'RENTER', tenant: tanPhu.name, ghiChu: 'Tenant bị tạm ngưng' },
   ]);
 }
 
