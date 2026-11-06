@@ -924,20 +924,18 @@ async function main(): Promise<void> {
     payments: [{ status: PaymentStatus.FAILED }],
   });
 
-  await createInvoice({
-    contract: contractBinh,
-    property: binhProperty1,
-    monthOffset: 0,
-    issueDate: monthStart(0),
-    dueDate: addDays(today, 3),
-    electricityUsage: 95,
-    waterUsage: 4,
-    services: [
-      { service: p1Internet, quantity: 1 },
-      { service: p1Parking, quantity: 1 },
-      { service: p1Trash, quantity: 2 },
-    ],
-    status: InvoiceStatus.UNPAID,
+  // Meter reading tháng này cho P102 (chưa lập hóa đơn để chủ trọ demo nhập chỉ số và lập hóa đơn mới)
+  await prisma.meterReading.create({
+    data: {
+      tenantId: contractBinh.tenantId,
+      roomId: contractBinh.roomId,
+      billingMonth: monthStart(0),
+      electricityIndex: 1095,
+      waterIndex: 104,
+      electricityUsage: 5,
+      waterUsage: 0,
+      createdAt: monthStart(0),
+    },
   });
   const invoiceBinhCancelled = await createInvoice({
     contract: contractBinh,

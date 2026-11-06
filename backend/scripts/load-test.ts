@@ -90,13 +90,7 @@ async function runLoadTest(
 }
 
 async function main() {
-  console.log('\n======================================================================');
-  console.log('  🚀 HỆ THỐNG QUẢN LÝ NHÀ TRỌ SAAS - ĐO LƯỜNG HIỆU NĂNG (LOAD TEST)');
-  console.log('======================================================================');
-  console.log('• Cơ sở dữ liệu: PostgreSQL 16 Alpine (Docker)');
-  console.log('• Cơ chế bảo mật: Row-Level Security (app_user)');
-  console.log('• Thiết lập tải: Concurrency = 30 kết nối đồng thời');
-  console.log('----------------------------------------------------------------------\n');
+  console.log('=== BẮT ĐẦU KIỂM THỬ TẢI & ĐO LƯỜNG HIỆU NĂNG (LOAD TEST) ===\n');
 
   // 1. Tạo test landlord và token
   const plan = await prismaSystem.plan.findFirstOrThrow({ where: { name: 'Cơ bản' } });
@@ -164,7 +158,10 @@ async function main() {
   const port = (server.address() as any).port;
   const baseUrl = `http://localhost:${port}`;
 
-  process.stdout.write('⏳ [1/4] Đang đo tải GET /api/rooms (Truy vấn CSDL có PostgreSQL RLS)... ');
+  console.log(`✓ Server benchmark đã chạy tại ${baseUrl}\n`);
+
+  // Scenario 1: Đọc danh sách phòng (RLS Query)
+  console.log('Đang chạy Kịch bản 1: GET /api/rooms (Truy vấn CSDL có PostgreSQL RLS)...');
   const roomsStats = await runLoadTest(
     `${baseUrl}/api/rooms`,
     'GET',
@@ -173,9 +170,9 @@ async function main() {
     300,
     30
   );
-  console.log('Xong!');
 
-  process.stdout.write('⏳ [2/4] Đang đo tải GET /api/invoices (Truy vấn hóa đơn đa bảng)... ');
+  // Scenario 2: Đọc danh sách hóa đơn (RLS Invoice query)
+  console.log('Đang chạy Kịch bản 2: GET /api/invoices (Truy vấn hóa đơn đa bảng có RLS)...');
   const invoiceStats = await runLoadTest(
     `${baseUrl}/api/invoices`,
     'GET',
@@ -184,20 +181,9 @@ async function main() {
     300,
     30
   );
-  console.log('Xong!');
 
-  process.stdout.write('⏳ [3/4] Đang đo tải GET /api/services (Truy vấn bảng dịch vụ)... ');
-  const serviceStats = await runLoadTest(
-    `${baseUrl}/api/services`,
-    'GET',
-    { Authorization: `Bearer ${token}` },
-    null,
-    300,
-    30
-  );
-  console.log('Xong!');
-
-  process.stdout.write('⏳ [4/4] Đang đo tải POST /api/auth/login (Xác thực Bcrypt Hash)... ');
+  // Scenario 3: Đăng nhập (CPU Intensive Bcrypt password verify - 5 reqs để trong ngưỡng an toàn rate limit 10 req/15 phút)
+  console.log('Đang chạy Kịch bản 3: POST /api/auth/login (Xác thực Bcrypt mật khẩu)...');
   const loginStats = await runLoadTest(
     `${baseUrl}/api/auth/login`,
     'POST',
@@ -206,7 +192,17 @@ async function main() {
     5,
     5
   );
-  console.log('Xong!\n');
+
+  // Scenario 4: Đọc danh sách dịch vụ (Services list)
+  console.log('Đang chạy Kịch bản 4: GET /api/services (Truy vấn bảng dịch vụ)...');
+  const serviceStats = await runLoadTest(
+    `${baseUrl}/api/services`,
+    'GET',
+    { Authorization: `Bearer ${token}` },
+    null,
+    300,
+    30
+  );
 
   // Dọn dẹp
   server.close();
@@ -215,69 +211,23 @@ async function main() {
   await prismaSystem.user.delete({ where: { id: landlordUser.id } });
   await prismaSystem.tenant.delete({ where: { id: tenant.id } });
 
-  // 1. In Bảng chuẩn console.table (Cực kỳ ngay ngắn, có khung kẻ viền bo góc)
-  console.log('========================================================================================');
-  console.log('                BẢNG TỔNG HỢP KẾT QUẢ KIỂM THỬ HIỆU NĂNG HỆ THỐNG');
-  console.log('========================================================================================');
+  console.log('\n=== KẾT QUẢ ĐO LƯỜNG HIỆU NĂNG HỆ THỐNG (LOAD TEST SUMMARY) ===\n');
+  console.log('| Kịch bản kiểm thử (API Endpoint) | Tổng Requests | Đồng thời (Concurrency) | Thông lượng (Req/s) | Độ trễ TB (Avg) | Độ trễ p50 (Median) | Độ trễ p95 | Độ trễ p99 | Tỷ lệ lỗi |');
+  console.log('| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |');
+  
+  const printRow = (name: string, c: number, s: LatencyStats) => {
+    const errRate = ((s.errors / (s.count + s.errors)) * 100).toFixed(2) + '%';
+    console.log(
+      `| ${name} | ${s.count} | ${c} | ${s.reqPerSec} req/s | ${s.avgMs} ms | ${s.p50Ms} ms | ${s.p95Ms} ms | ${s.p99Ms} ms | ${errRate} |`
+    );
+  };
 
-  const tableData = [
-    {
-      'API Endpoint': 'GET /api/invoices',
-      'Đặc tả kịch bản': 'Hóa đơn đa bảng (RLS)',
-      'Requests': invoiceStats.count,
-      'Clients': 30,
-      'Throughput': `${invoiceStats.reqPerSec} req/s`,
-      'Avg Latency': `${invoiceStats.avgMs} ms`,
-      'p50 (Median)': `${invoiceStats.p50Ms} ms`,
-      'p95 Latency': `${invoiceStats.p95Ms} ms`,
-      'Error Rate': '0.00%',
-    },
-    {
-      'API Endpoint': 'GET /api/services',
-      'Đặc tả kịch bản': 'Danh mục dịch vụ (RLS)',
-      'Requests': serviceStats.count,
-      'Clients': 30,
-      'Throughput': `${serviceStats.reqPerSec} req/s`,
-      'Avg Latency': `${serviceStats.avgMs} ms`,
-      'p50 (Median)': `${serviceStats.p50Ms} ms`,
-      'p95 Latency': `${serviceStats.p95Ms} ms`,
-      'Error Rate': '0.00%',
-    },
-    {
-      'API Endpoint': 'GET /api/rooms',
-      'Đặc tả kịch bản': 'Danh sách phòng (RLS)',
-      'Requests': roomsStats.count,
-      'Clients': 30,
-      'Throughput': `${roomsStats.reqPerSec} req/s`,
-      'Avg Latency': `${roomsStats.avgMs} ms`,
-      'p50 (Median)': `${roomsStats.p50Ms} ms`,
-      'p95 Latency': `${roomsStats.p95Ms} ms`,
-      'Error Rate': '0.00%',
-    },
-    {
-      'API Endpoint': 'POST /api/auth/login',
-      'Đặc tả kịch bản': 'Xác thực Bcrypt Hash',
-      'Requests': loginStats.count,
-      'Clients': 5,
-      'Throughput': `${loginStats.reqPerSec} req/s`,
-      'Avg Latency': `${loginStats.avgMs} ms`,
-      'p50 (Median)': `${loginStats.p50Ms} ms`,
-      'p95 Latency': `${loginStats.p95Ms} ms`,
-      'Error Rate': '0.00%',
-    },
-  ];
+  printRow('`GET /api/rooms` (RLS Query)', 30, roomsStats);
+  printRow('`GET /api/invoices` (RLS Query)', 30, invoiceStats);
+  printRow('`GET /api/services` (Dịch vụ)', 30, serviceStats);
+  printRow('`POST /api/auth/login` (Bcrypt Hash)', 10, loginStats);
 
-  console.table(tableData);
-
-  // 2. In Thẻ chi tiết từng Endpoint
-  console.log('\n----------------------------------------------------------------------------------------');
-  console.log('📌 ĐÁNH GIÁ CHỈ SỐ KỸ THUẬT (DÙNG ĐỂ VIẾT BÁO CÁO ĐỒ ÁN MỤC 3.4.5):');
-  console.log('----------------------------------------------------------------------------------------');
-  console.log('✔ Chi phí phụ trội RLS (Overhead): Rất thấp, độ trễ trung vị p50 đạt ~135ms - 150ms.');
-  console.log('✔ Độ ổn định: 100% requests xử lý thành công (Tỷ lệ lỗi 0.00% dưới 30 kết nối đồng thời).');
-  console.log('✔ Thông lượng phục vụ đỉnh: Đạt tới 210 requests/giây đối với truy vấn hóa đơn.');
-  console.log('✔ Bảo mật chống Brute Force: Endpoint login được bảo vệ bởi rateLimiter (10 req/15 phút).');
-  console.log('========================================================================================\n');
+  console.log('\n=== HOÀN TẤT ĐO ĐẠC TOÀN DIỆN ===');
 }
 
 main().catch(console.error);
