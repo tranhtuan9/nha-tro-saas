@@ -338,6 +338,10 @@ export async function syncPayment(context: TenantContext, paymentId: string) {
     throw ApiError.notFound('PAYMENT_NOT_FOUND', 'Không tìm thấy giao dịch thanh toán');
   }
 
+  if (payment.status === PaymentStatus.PAID) {
+    return serializePayment(payment as PaymentRow);
+  }
+
   const info: PaymentLinkInfo = await callGateway(() =>
     getPaymentGateway().getPaymentLink(Number(payment.orderCode))
   );
