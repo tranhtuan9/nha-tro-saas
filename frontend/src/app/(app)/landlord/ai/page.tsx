@@ -52,6 +52,98 @@ const QUICK_PROMPTS = [
   "Phòng nào đang còn trống?",
 ];
 
+function FormattedMessageText({ text, isUser }: { text: string; isUser?: boolean }) {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let currentList: React.ReactNode[] = [];
+
+  function formatInline(str: string, keyPrefix: string): React.ReactNode[] {
+    const parts = str.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
+        return (
+          <strong
+            key={`${keyPrefix}-${i}`}
+            className={isUser ? "font-semibold text-white" : "font-semibold text-slate-900"}
+          >
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
+        return (
+          <code
+            key={`${keyPrefix}-${i}`}
+            className={`rounded px-1.5 py-0.5 text-xs font-mono ${
+              isUser ? "bg-white/20 text-white" : "bg-slate-100 text-slate-800"
+            }`}
+          >
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+      return part;
+    });
+  }
+
+  lines.forEach((line, lineIdx) => {
+    const trimmed = line.trim();
+    const bulletMatch = trimmed.match(/^([-*•]|\d+\.)\s+(.*)$/);
+
+    if (bulletMatch) {
+      const isNumbered = /^\d+\./.test(bulletMatch[1]);
+      currentList.push(
+        <li key={`li-${lineIdx}`} className="flex items-start gap-2 leading-relaxed">
+          {isNumbered ? (
+            <span
+              className={`min-w-4 text-xs font-semibold ${
+                isUser ? "text-white/80" : "text-primary"
+              }`}
+            >
+              {bulletMatch[1]}
+            </span>
+          ) : (
+            <span
+              className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${
+                isUser ? "bg-white/80" : "bg-primary"
+              }`}
+            />
+          )}
+          <span className="flex-1">{formatInline(bulletMatch[2], `li-${lineIdx}`)}</span>
+        </li>
+      );
+    } else {
+      if (currentList.length > 0) {
+        elements.push(
+          <ul key={`ul-${lineIdx}`} className="my-1.5 space-y-1.5 pl-0.5 list-none">
+            {currentList}
+          </ul>
+        );
+        currentList = [];
+      }
+      if (trimmed === "") {
+        elements.push(<div key={`sp-${lineIdx}`} className="h-1.5" />);
+      } else {
+        elements.push(
+          <p key={`p-${lineIdx}`} className="leading-relaxed">
+            {formatInline(line, `p-${lineIdx}`)}
+          </p>
+        );
+      }
+    }
+  });
+
+  if (currentList.length > 0) {
+    elements.push(
+      <ul key="ul-last" className="my-1.5 space-y-1.5 pl-0.5 list-none">
+        {currentList}
+      </ul>
+    );
+  }
+
+  return <div className="space-y-1 text-sm">{elements}</div>;
+}
+
 function isInvoicePreview(preview: unknown): preview is InvoicePreview {
   return (
     typeof preview === "object" &&
@@ -258,16 +350,25 @@ export default function AiPage() {
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
+                  className={
+                    message.role === "user"
+                      ? "flex justify-end"
+                      : "flex items-start gap-2.5 justify-start"
+                  }
                 >
+                  {message.role !== "user" && (
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-primary border border-blue-100 shadow-xs mt-0.5">
+                      <Icon name="smart_toy" className="h-4 w-4" />
+                    </div>
+                  )}
                   <div
                     className={
                       message.role === "user"
-                        ? "max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-3.5 py-2 text-sm text-white"
-                        : "max-w-[85%] rounded-2xl rounded-bl-sm bg-surface-container px-3.5 py-2 text-sm text-ink"
+                        ? "max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-white shadow-xs"
+                        : "max-w-[85%] rounded-2xl rounded-tl-sm bg-surface-container/60 border border-border/80 px-4 py-2.5 text-ink shadow-xs"
                     }
                   >
-                    {message.text}
+                    <FormattedMessageText text={message.text} isUser={message.role === "user"} />
                   </div>
                 </div>
               ))}

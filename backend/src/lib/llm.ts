@@ -26,6 +26,7 @@ export interface LlmGenerateResult {
   reply: string | null;
   /** Các lời gọi hàm model yêu cầu — CHỈ trả về, không thực thi. */
   functionCalls: FunctionCall[];
+  parts?: LlmMessage['parts'];
 }
 
 export interface LlmClient {
@@ -86,6 +87,7 @@ export class GeminiLlmClient implements LlmClient {
       return {
         reply: response.text ?? null,
         functionCalls: response.functionCalls ?? [],
+        parts: (response.candidates?.[0]?.content?.parts as unknown as LlmMessage['parts']) ?? undefined,
       };
     } catch (err) {
       if (err instanceof LlmUnavailableError) throw err;

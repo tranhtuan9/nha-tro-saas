@@ -216,7 +216,9 @@ export async function chat(context: TenantContext, input: ChatInput) {
       // Lượt model yêu cầu gọi hàm: phản chiếu lại đúng các lời gọi (một lượt model).
       contents.push({
         role: 'model',
-        parts: result.functionCalls.map((call) => ({ functionCall: call })),
+        parts: result.parts && result.parts.length > 0
+          ? result.parts
+          : result.functionCalls.map((call) => ({ functionCall: call })),
       });
 
       const responseParts: LlmMessage['parts'] = [];
