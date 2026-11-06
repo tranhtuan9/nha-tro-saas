@@ -1,0 +1,11 @@
+<svg width="1160" height="256" viewBox="0 0 1160 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Quản lý nhà trọ">
+  <rect width="256" height="256" rx="56" fill="#2563EB"/>
+  <path d="M128 54 L202 113 L54 113 Z" fill="#FFFFFF"/>
+  <rect x="54" y="113" width="148" height="10" rx="5" fill="#FFFFFF"/>
+  <rect x="76" y="131" width="104" height="71" rx="8" fill="#FFFFFF"/>
+  <rect x="94" y="150" width="28" height="28" rx="5" fill="#2563EB"/>
+  <rect x="134" y="150" width="28" height="28" rx="5" fill="#2563EB"/>
+  <rect x="114" y="180" width="28" height="22" rx="4" fill="#BFD3FF"/>
+  <text x="304" y="118" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="64" font-weight="700" fill="#0F172A" letter-spacing="-1">Quản lý nhà trọ</text>
+  <text x="304" y="166" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="30" font-weight="600" fill="#2563EB" letter-spacing="6">SAAS</text>
+</svg>

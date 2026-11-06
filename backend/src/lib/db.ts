@@ -1,9 +1,5 @@
+import '../config/env';
 import { PrismaClient, Prisma } from '@prisma/client';
-import dotenv from 'dotenv';
-import path from 'path';
-
-// Load biến môi trường từ .env
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const systemDbUrl = process.env.SYSTEM_DATABASE_URL;
 const appDbUrl = process.env.APP_DATABASE_URL;

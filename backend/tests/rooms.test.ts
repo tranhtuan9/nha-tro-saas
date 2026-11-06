@@ -624,18 +624,57 @@ describe('Module Phòng (UC13) — /api/rooms', () => {
   });
 
   describe('Phân quyền (chốt 7)', () => {
-    it('RENTER nhận 403', async () => {
+    it('RENTER chỉ xem được phòng trong hợp đồng của mình (UC27)', async () => {
       const get = await request(app)
         .get('/api/rooms')
         .set('Authorization', `Bearer ${renterAToken}`);
-      expect(get.status).toBe(403);
 
+      expect(get.status).toBe(200);
+
+      // Danh sách phòng đúng bằng các phòng có hợp đồng của Renter (RLS lọc theo renter_id).
+      const contracts = await prismaSystem.contract.findMany({
+        where: { tenantId: tenantAId, renterId: renterAId },
+        select: { roomId: true },
+      });
+      const allowedRoomIds = contracts.map((c) => c.roomId);
+
+      expect(get.body.pagination.total).toBe(allowedRoomIds.length);
+      expect(get.body.data).toHaveLength(allowedRoomIds.length);
+      expect(get.body.data.every((r: { id: string }) => allowedRoomIds.includes(r.id))).toBe(true);
+      expect(get.body.data.some((r: { id: string }) => r.id === roomActiveId)).toBe(true);
+      expect(
+        get.body.data.find((r: { id: string }) => r.id === roomActiveId).propertyName
+      ).toBe(`Nhà R A1 ${ts}`);
+    });
+
+    it('RENTER xem phòng của mình -> 200; phòng của Tenant khác -> 404', async () => {
+      const own = await request(app)
+        .get(`/api/rooms/${roomActiveId}`)
+        .set('Authorization', `Bearer ${renterAToken}`);
+      expect(own.status).toBe(200);
+      expect(own.body.data.roomCode).toBe(`ACT${ts}`);
+      expect(own.body.data.propertyName).toBe(`Nhà R A1 ${ts}`);
+
+      const other = await request(app)
+        .get(`/api/rooms/${roomBId}`)
+        .set('Authorization', `Bearer ${renterAToken}`);
+      expect(other.status).toBe(404);
+      expect(other.body.error.code).toBe('ROOM_NOT_FOUND');
+    });
+
+    it('RENTER không tạo/sửa được phòng -> 403', async () => {
       const post = await authPost(renterAToken, {
         propertyId: propertyA1Id,
         roomCode: `HACK${ts}`,
         basePrice: 1,
       });
       expect(post.status).toBe(403);
+
+      const patch = await request(app)
+        .patch(`/api/rooms/${roomActiveId}`)
+        .set('Authorization', `Bearer ${renterAToken}`)
+        .send({ basePrice: 1 });
+      expect(patch.status).toBe(403);
     });
 
     it('ADMIN nhận 403', async () => {

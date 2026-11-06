@@ -18,18 +18,22 @@ const roomSelect = {
   status: true,
   description: true,
   createdAt: true,
+  property: { select: { name: true } },
 } satisfies Prisma.RoomSelect;
 
 type RoomRow = Prisma.RoomGetPayload<{ select: typeof roomSelect }>;
 
 /**
  * Q2: các trường tiền tệ Decimal (basePrice) và diện tích trả về dạng string để tránh sai số.
+ * propertyName làm phẳng tên nhà trọ (Renter cũng cần biết phòng thuộc nhà trọ nào).
  */
 function serializeRoom(room: RoomRow) {
+  const { property, ...rest } = room;
   return {
-    ...room,
+    ...rest,
     areaM2: room.areaM2 === null ? null : room.areaM2.toString(),
     basePrice: room.basePrice.toString(),
+    propertyName: property.name,
   };
 }
 
@@ -238,6 +242,58 @@ export async function updateRoom(
   });
 }
 
+/**
+ * Validate đổi trạng thái phòng: phòng tồn tại và KHÔNG có hợp đồng ACTIVE.
+ * Dùng CHUNG cho previewRoomStatus và updateRoomStatus (hai đường không lệch luật).
+ * Gọi bên trong transaction (tx).
+ */
+async function buildRoomStatusData(
+  tx: Prisma.TransactionClient,
+  roomId: string
+): Promise<RoomRow> {
+  const room = await tx.room.findUnique({
+    where: { id: roomId },
+    select: roomSelect,
+  });
+  if (!room) throw ApiError.notFound('ROOM_NOT_FOUND', 'Không tìm thấy phòng');
+
+  // Rule 8: không đổi trạng thái phòng đang có hợp đồng ACTIVE.
+  const activeContract = await tx.contract.findFirst({
+    where: { roomId, status: ContractStatus.ACTIVE },
+    select: { id: true },
+  });
+  if (activeContract) {
+    throw ApiError.conflict(
+      'ROOM_HAS_ACTIVE_CONTRACT',
+      'Không thể đổi trạng thái phòng đang có hợp đồng hiệu lực'
+    );
+  }
+
+  return room;
+}
+
+/**
+ * UC13 (xem trước): validate như update nhưng KHÔNG ghi gì.
+ * Dùng cho AI tạo đề xuất (UC22) và kiểm tra lại khi xác nhận (UC23).
+ */
+export async function previewRoomStatus(
+  context: TenantContext,
+  roomId: string,
+  input: UpdateRoomStatusInput
+) {
+  const db = getTenantDb(context);
+
+  return db.tenantTransaction(async (tx) => {
+    const room = await buildRoomStatusData(tx, roomId);
+    return {
+      id: room.id,
+      roomCode: room.roomCode,
+      currentStatus: room.status,
+      newStatus: input.status as RoomStatus,
+    };
+  });
+}
+
 export async function updateRoomStatus(
   context: TenantContext,
   roomId: string,
@@ -246,23 +302,7 @@ export async function updateRoomStatus(
   const db = getTenantDb(context);
 
   return db.tenantTransaction(async (tx) => {
-    const room = await tx.room.findUnique({
-      where: { id: roomId },
-      select: roomSelect,
-    });
-    if (!room) throw ApiError.notFound('ROOM_NOT_FOUND', 'Không tìm thấy phòng');
-
-    // Rule 8: không đổi trạng thái phòng đang có hợp đồng ACTIVE.
-    const activeContract = await tx.contract.findFirst({
-      where: { roomId, status: ContractStatus.ACTIVE },
-      select: { id: true },
-    });
-    if (activeContract) {
-      throw ApiError.conflict(
-        'ROOM_HAS_ACTIVE_CONTRACT',
-        'Không thể đổi trạng thái phòng đang có hợp đồng hiệu lực'
-      );
-    }
+    await buildRoomStatusData(tx, roomId);
 
     const updated = await tx.room.update({
       where: { id: roomId },

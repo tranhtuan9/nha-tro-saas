@@ -201,6 +201,13 @@ describe('Kiểm thử Module Xác thực & Hồ sơ (Auth & Profile)', () => {
       expect(res.body.data.id).toBe(landlordId);
       expect(res.body.data.email).toBe(testEmail);
       expect(res.body.data.passwordHash).toBeUndefined();
+      expect(res.body.data.tenant).toBeDefined();
+      expect(res.body.data.tenant.id).toBe(tenantId);
+      expect(res.body.data.tenant.subscriptionEnd).toBeDefined();
+      expect(res.body.data.tenant.plan).toBeDefined();
+      expect(typeof res.body.data.tenant.plan.maxProperties).toBe('number');
+      expect(typeof res.body.data.tenant.plan.maxRooms).toBe('number');
+      expect(res.body.data.tenant.plan.name).toBeDefined();
     });
 
     it('Chặn truy cập khi thiếu hoặc sai JWT token', async () => {

@@ -1,8 +1,7 @@
+import './config/env';
 import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import path from 'path';
 import authRoutes from './modules/auth/routes';
 import adminRoutes from './modules/admin/routes';
 import propertyRoutes from './modules/properties/routes';
@@ -13,10 +12,11 @@ import serviceRoutes from './modules/services/routes';
 import meterReadingRoutes from './modules/meter-readings/routes';
 import invoiceRoutes from './modules/invoices/routes';
 import paymentRoutes from './modules/payments/routes';
+import aiRoutes from './modules/ai/routes';
+import notificationRoutes from './modules/notifications/routes';
+import supportRequestRoutes from './modules/support-requests/routes';
 import { handlePayosWebhook } from './modules/payments/webhook';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler';
-
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app: Application = express();
 
@@ -62,6 +62,9 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/meter-readings', meterReadingRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/support-requests', supportRequestRoutes);
 
 // 404 cho mọi route không khớp
 app.use(notFoundHandler);

@@ -25,6 +25,21 @@ const contractSelect = {
 } satisfies Prisma.ContractSelect;
 
 type ContractRow = Prisma.ContractGetPayload<{ select: typeof contractSelect }>;
+// List select: kem room + propertyName de frontend hien thi ten nha tro, so phong.
+const contractListSelect = {
+  ...contractSelect,
+  room: {
+    select: {
+      id: true,
+      roomCode: true,
+      propertyId: true,
+      property: { select: { id: true, name: true } },
+    },
+  },
+} satisfies Prisma.ContractSelect;
+
+type ContractListRow = Prisma.ContractGetPayload<{ select: typeof contractListSelect }>;
+
 
 // Q2: chi tiết trả kèm room (phẳng, có propertyName) và renter (KHÔNG passwordHash/nationalId).
 const contractDetailSelect = {
@@ -50,6 +65,20 @@ function serializeContract(contract: ContractRow) {
     ...contract,
     monthlyRent: contract.monthlyRent.toString(),
     deposit: contract.deposit.toString(),
+  };
+}
+
+
+function serializeContractList(contract: ContractListRow) {
+  const { room, ...rest } = contract;
+  return {
+    ...serializeContract(rest),
+    room: {
+      id: room.id,
+      roomCode: room.roomCode,
+      propertyId: room.propertyId,
+      propertyName: room.property.name,
+    },
   };
 }
 
@@ -98,16 +127,111 @@ export async function listContracts(context: TenantContext, query: ContractListQ
   const total = await db.contract.count({ where });
   const rows = await db.contract.findMany({
     where,
-    select: contractSelect,
+    select: contractListSelect,
     orderBy: { createdAt: 'desc' },
     skip: (query.page - 1) * query.pageSize,
     take: query.pageSize,
   });
 
   return {
-    data: rows.map(serializeContract),
+    data: rows.map(serializeContractList),
     pagination: { page: query.page, pageSize: query.pageSize, total },
   };
+}
+
+/**
+ * Validate dữ liệu tạo hợp đồng (renter, phòng, hợp đồng đang hiệu lực của phòng).
+ * Dùng CHUNG cho previewContract và create hai đường không bao giờ lệch luật.
+ * Gọi bên trong transaction (tx).
+ */
+async function buildContractData(
+  tx: Prisma.TransactionClient,
+  input: CreateContractInput
+): Promise<{ room: { id: string; roomCode: string } }> {
+  // Q1: endDate phải lớn hơn startDate (startDate quá khứ thì vẫn cho phép).
+  if (input.endDate <= input.startDate) {
+    throw ApiError.badRequest(
+      'INVALID_DATE_RANGE',
+      'Ngày kết thúc phải lớn hơn ngày bắt đầu'
+    );
+  }
+
+  // renterId phải trỏ tới User RENTER trong cùng Tenant (RLS tự lọc Tenant khác).
+  const renter = await tx.user.findUnique({
+    where: { id: input.renterId },
+    select: { id: true, role: true },
+  });
+  if (!renter || renter.role !== UserRole.RENTER) {
+    throw ApiError.badRequest(
+      'INVALID_RENTER',
+      'renterId không hợp lệ: người dùng không tồn tại hoặc không phải Người thuê'
+    );
+  }
+
+  const room = await tx.room.findUnique({
+    where: { id: input.roomId },
+    select: {
+      id: true,
+      roomCode: true,
+      status: true,
+      property: { select: { isActive: true } },
+    },
+  });
+  if (!room) throw ApiError.notFound('ROOM_NOT_FOUND', 'Không tìm thấy phòng');
+
+  // Nhà trọ của phòng đã bị ẩn -> không thể tạo hợp đồng mới.
+  if (!room.property.isActive) {
+    throw ApiError.badRequest(
+      'PROPERTY_INACTIVE',
+      'Nhà trọ của phòng đã bị ẩn, không thể tạo hợp đồng'
+    );
+  }
+
+  // Phòng đang bảo trì -> không khả dụng.
+  if (room.status === RoomStatus.MAINTENANCE) {
+    throw ApiError.conflict(
+      'ROOM_NOT_AVAILABLE',
+      'Phòng đang bảo trì, không thể tạo hợp đồng'
+    );
+  }
+
+  // Mỗi phòng chỉ một hợp đồng ACTIVE (chặn sớm; race vẫn bắt bởi uq_contract_active_room).
+  const activeContract = await tx.contract.findFirst({
+    where: { roomId: input.roomId, status: ContractStatus.ACTIVE },
+    select: { id: true },
+  });
+  if (activeContract) {
+    throw ApiError.conflict(
+      'ROOM_ALREADY_OCCUPIED',
+      'Phòng đã có hợp đồng hiệu lực, không thể tạo hợp đồng mới'
+    );
+  }
+
+  return { room: { id: room.id, roomCode: room.roomCode } };
+}
+
+/**
+ * UC15 (xem trước): validate như create nhưng KHÔNG ghi gì.
+ * Dùng cho AI tạo đề xuất (UC22) và kiểm tra lại khi xác nhận (UC23).
+ */
+export async function previewContract(context: TenantContext, input: CreateContractInput) {
+  const db = getTenantDb(context);
+
+  return db.tenantTransaction(async (tx) => {
+    const { room } = await buildContractData(tx, input);
+    return {
+      roomId: room.id,
+      roomCode: room.roomCode,
+      renterId: input.renterId,
+      startDate: input.startDate,
+      endDate: input.endDate,
+      monthlyRent: input.monthlyRent.toString(),
+      deposit: input.deposit.toString(),
+      terms: input.terms ?? null,
+      status: ContractStatus.ACTIVE,
+      willSetRoomStatus: RoomStatus.OCCUPIED,
+    };
+  });
 }
 
 /**
@@ -117,54 +241,9 @@ export async function listContracts(context: TenantContext, query: ContractListQ
 export async function createContract(context: TenantContext, input: CreateContractInput) {
   const db = getTenantDb(context);
 
-  // Q1: endDate phải lớn hơn startDate (startDate quá khứ thì vẫn cho phép).
-  if (input.endDate <= input.startDate) {
-    throw ApiError.badRequest(
-      'INVALID_DATE_RANGE',
-      'Ngày kết thúc phải lớn hơn ngày bắt đầu'
-    );
-  }
-
   try {
     return await db.tenantTransaction(async (tx) => {
-      // renterId phải trỏ tới User RENTER trong cùng Tenant (RLS tự lọc Tenant khác).
-      const renter = await tx.user.findUnique({
-        where: { id: input.renterId },
-        select: { id: true, role: true },
-      });
-      if (!renter || renter.role !== UserRole.RENTER) {
-        throw ApiError.badRequest(
-          'INVALID_RENTER',
-          'renterId không hợp lệ: người dùng không tồn tại hoặc không phải Người thuê'
-        );
-      }
-
-      const room = await tx.room.findUnique({
-        where: { id: input.roomId },
-        select: {
-          id: true,
-          roomCode: true,
-          status: true,
-          property: { select: { isActive: true } },
-        },
-      });
-      if (!room) throw ApiError.notFound('ROOM_NOT_FOUND', 'Không tìm thấy phòng');
-
-      // Nhà trọ của phòng đã bị ẩn -> không thể tạo hợp đồng mới.
-      if (!room.property.isActive) {
-        throw ApiError.badRequest(
-          'PROPERTY_INACTIVE',
-          'Nhà trọ của phòng đã bị ẩn, không thể tạo hợp đồng'
-        );
-      }
-
-      // Phòng đang bảo trì -> không khả dụng.
-      if (room.status === RoomStatus.MAINTENANCE) {
-        throw ApiError.conflict(
-          'ROOM_NOT_AVAILABLE',
-          'Phòng đang bảo trì, không thể tạo hợp đồng'
-        );
-      }
+      await buildContractData(tx, input);
 
       const contract = await tx.contract.create({
         data: {

@@ -246,7 +246,7 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
     expect(properties.length).toBe(0);
   });
 
-  it('6. audit_logs là append-only: app_user KHÔNG THỂ UPDATE hoặc DELETE', async () => {
+  it('6. audit_logs: app_user không UPDATE và không DELETE được; bảo toàn nhật ký kiểm toán', async () => {
     const dbA = getTenantDb({
       tenantId: tenantAId,
       userId: landlordAId,
@@ -266,7 +266,7 @@ describe('Kiểm thử cô lập CSDL trên PostgreSQL thật (Row-Level Securit
     });
     expect(log).toBeDefined();
 
-    // 2. Thử UPDATE -> Bị lỗi quyền CSDL (REVOKE UPDATE)
+    // 2. Bản ghi không phải đề xuất AI -> trigger chặn UPDATE.
     await expect(
       dbA.auditLog.update({
         where: { id: log.id },

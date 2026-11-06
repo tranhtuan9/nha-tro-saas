@@ -366,6 +366,8 @@ model Payment {
   tenant  Tenant  @relation(fields: [tenantId], references: [id])
   invoice Invoice @relation(fields: [invoiceId], references: [id])
 
+  // Một link đang mở mỗi hóa đơn (viết bằng SQL migration):
+  //   uq_payment_active_invoice  UNIQUE (invoice_id) WHERE status = 'PENDING'
   @@index([invoiceId])
   @@index([tenantId])
   @@map("payments")
