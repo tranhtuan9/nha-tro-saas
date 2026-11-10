@@ -563,6 +563,42 @@ describe('Module Trợ lý AI (UC21, UC22, UC23) — /api/ai', () => {
       expect(created).toBeGreaterThanOrEqual(1);
       expect(JSON.stringify(fake.requests[1].contents)).toContain('tối đa một đề xuất');
     });
+
+    it('thiếu kỳ hóa đơn -> system instruction có quy tắc hỏi lại, trả lời văn bản, không tạo đề xuất', async () => {
+      fake.push(textReply('Bạn muốn lập hóa đơn cho kỳ (tháng/năm) nào?'));
+      const res = await chat(landlords.c2.token, { message: 'Tạo hóa đơn cho phòng P102' });
+      expect(res.status).toBe(200);
+      expect(res.body.proposal).toBeNull();
+      expect(res.body.reply).toBe('Bạn muốn lập hóa đơn cho kỳ (tháng/năm) nào?');
+
+      const systemInstruction = fake.requests[0].systemInstruction ?? '';
+      expect(systemInstruction).toMatch(/không gọi hàm ghi/i);
+      expect(systemInstruction).toMatch(/không tự điền/i);
+      expect(systemInstruction).toMatch(/hỏi lại/i);
+      expect(systemInstruction).toMatch(/không được suy đoán/i);
+    });
+
+    it('tự điền kỳ không hợp lệ (2025-05) -> backend chặn với functionResponse chứa loi, không tạo đề xuất', async () => {
+      fake.push(
+        callTool('createInvoice', { roomCode: code('RINV'), billingMonth: '2025-05' }),
+        textReply('Không thể tạo hóa đơn cho kỳ trước ngày bắt đầu hợp đồng.')
+      );
+      const res = await chat(landlords.c2.token, { message: 'Tạo hóa đơn' });
+      expect(res.status).toBe(200);
+      expect(res.body.proposal).toBeNull();
+      expect(res.body.reply).toBe('Không thể tạo hóa đơn cho kỳ trước ngày bắt đầu hợp đồng.');
+
+      const secondReq = fake.requests[1];
+      const toolResponsePart = secondReq.contents[2]?.parts?.[0];
+      expect(toolResponsePart).toMatchObject({
+        functionResponse: {
+          name: 'createInvoice',
+          response: {
+            loi: 'Kỳ hóa đơn trước tháng bắt đầu hợp đồng',
+          },
+        },
+      });
+    });
   });
 
   describe('Xác nhận đề xuất (UC23)', () => {

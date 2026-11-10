@@ -45,9 +45,17 @@ export async function resolveRoom(
   roomCode: string,
   propertyName?: string
 ): Promise<ResolveResult<ResolvedRoom>> {
+  const trimmed = roomCode.trim();
+  const variations = [trimmed];
+  if (/^P/i.test(trimmed)) {
+    variations.push(trimmed.slice(1));
+  } else {
+    variations.push(`P${trimmed}`, `p${trimmed}`);
+  }
+
   const rooms = await db.room.findMany({
     where: {
-      roomCode,
+      roomCode: { in: variations, mode: 'insensitive' },
       ...(propertyName
         ? { property: { name: { equals: propertyName, mode: 'insensitive' } } }
         : {}),
