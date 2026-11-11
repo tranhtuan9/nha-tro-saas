@@ -50,7 +50,7 @@ export default function PrivacyPage() {
                 1. Cam kết Chung về Quyền riêng tư
               </h2>
               <p>
-                Nền tảng Quản lý nhà trọ (sau đây gọi tắt là <strong>"Hệ thống"</strong>) cam kết bảo vệ dữ liệu cá nhân của mọi chủ thể dữ liệu (Chủ trọ, Người thuê phòng trọ) theo đúng quy định của <strong>Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15</strong> và Nghị định số 13/2023/NĐ-CP của Chính phủ.
+                Nền tảng Quản lý nhà trọ (sau đây gọi tắt là <strong>&quot;Hệ thống&quot;</strong>) cam kết bảo vệ dữ liệu cá nhân của mọi chủ thể dữ liệu (Chủ trọ, Người thuê phòng trọ) theo đúng quy định của <strong>Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15</strong> và Nghị định số 13/2023/NĐ-CP của Chính phủ.
               </p>
               <p className="mt-2">
                 Hệ thống chỉ thu thập và xử lý dữ liệu khi có <strong>sự đồng ý tự nguyện, chủ động và tường minh</strong> của bạn. Chúng tôi tuyệt đối không mặc định rằng việc tiếp tục truy cập hay sử dụng website là sự đồng ý xử lý dữ liệu cá nhân.

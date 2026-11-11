@@ -50,7 +50,7 @@ export default function TermsPage() {
                 1. Giới thiệu và Phạm vi áp dụng
               </h2>
               <p>
-                Chào mừng bạn đến với nền tảng phần mềm Quản lý nhà trọ (sau đây gọi tắt là <strong>"Hệ thống"</strong> hoặc <strong>"Nền tảng"</strong>).
+                Chào mừng bạn đến với nền tảng phần mềm Quản lý nhà trọ (sau đây gọi tắt là <strong>&quot;Hệ thống&quot;</strong> hoặc <strong>&quot;Nền tảng&quot;</strong>).
                 Bằng việc đăng ký tài khoản hoặc sử dụng bất kỳ dịch vụ nào trên Hệ thống, bạn (bao gồm Chủ trọ, Quản trị viên và Người thuê)
                 đồng ý chịu ràng buộc bởi các Điều khoản Dịch vụ này.
               </p>
