@@ -125,11 +125,11 @@ Tất cả các tài khoản thử nghiệm dưới đây đều sử dụng chu
 
 | Vai trò | Email đăng nhập | Mật khẩu | Mục đích thử nghiệm đề xuất |
 |---|---|:---:|---|
-| **Quản trị viên (Admin SaaS)** | `admin@demo.vn` | `123456` | Quản lý toàn bộ hệ thống, quản lý danh sách Tenant, cấu hình các gói dịch vụ (Plan), khóa/mở khóa người dùng |
-| **Chủ nhà trọ (Landlord)** | `landlord.binhminh@demo.vn` | `123456` | **Tài khoản đầy đủ dữ liệu nhất:** Quản lý 2 cơ sở nhà trọ, 10 phòng trọ, danh sách khách thuê, hợp đồng, hóa đơn, điện nước và Trợ lý AI |
-| **Khách thuê (Renter)** | `renter.binh@demo.vn` | `123456` | Cổng khách thuê: Xem phòng, hợp đồng, **trải nghiệm thanh toán hóa đơn online quét mã VietQR thật (payOS 2.000đ)** |
-| **Khách thuê (Renter)** | `renter.an@demo.vn` | `123456` | Xem chi tiết hóa đơn sinh hoạt, gửi phản ánh sửa chữa phòng đến chủ nhà |
-| **Chủ trọ gói hết hạn** | `landlord.minhan@demo.vn` | `123456` | Kiểm tra chính sách: Gói thuê bao hết hạn vẫn xem được dữ liệu cũ nhưng bị chặn tạo mới |
+| **Quản trị viên (Admin SaaS)** | `adminnhatro@gmail.com` | `123456` | Quản lý toàn bộ hệ thống, quản lý danh sách Tenant, cấu hình các gói dịch vụ (Plan), khóa/mở khóa người dùng |
+| **Chủ nhà trọ (Landlord)** | `nguyenvanbinh@gmail.com` | `123456` | **Tài khoản đầy đủ dữ liệu nhất:** Quản lý 2 cơ sở nhà trọ, 10 phòng trọ, danh sách khách thuê, hợp đồng, hóa đơn, điện nước và Trợ lý AI |
+| **Khách thuê (Renter)** | `tranthanhbinh@gmail.com` | `123456` | Cổng khách thuê: Xem phòng, hợp đồng, **trải nghiệm thanh toán hóa đơn online quét mã VietQR thật (payOS 2.000đ)** |
+| **Khách thuê (Renter)** | `nguyenhoaian@gmail.com` | `123456` | Xem chi tiết hóa đơn sinh hoạt, gửi phản ánh sửa chữa phòng đến chủ nhà |
+| **Chủ trọ gói hết hạn** | `leminhan@gmail.com` | `123456` | Kiểm tra chính sách: Gói thuê bao hết hạn vẫn xem được dữ liệu cũ nhưng bị chặn tạo mới |
 
 ---
 
@@ -138,7 +138,7 @@ Tất cả các tài khoản thử nghiệm dưới đây đều sử dụng chu
 Thầy/Cô có thể đăng nhập và trải nghiệm các luồng nghiệp vụ tiêu biểu theo hướng dẫn dưới đây:
 
 ### Kịch bản 1: Nghiệp vụ Chủ nhà trọ & Trợ lý AI thông minh
-- **Bước 1:** Đăng nhập với tài khoản `landlord.binhminh@demo.vn` / mật khẩu `123456`.
+- **Bước 1:** Đăng nhập với tài khoản `nguyenvanbinh@gmail.com` / mật khẩu `123456`.
 - **Bước 2 (Trang tổng quan):** Quan sát các chỉ số thống kê (KPIs): tổng doanh thu trong tháng, tỷ lệ lấp đầy phòng, số hóa đơn chưa thanh toán.
 - **Bước 3 (Quản lý phòng & Hợp đồng):**
   - Vào mục **Nhà trọ & Phòng**: Xem danh sách phòng theo từng cơ sở, lọc phòng theo trạng thái (*Đang thuê, Trống, Đang bảo trì*).
@@ -157,7 +157,7 @@ Thầy/Cô có thể đăng nhập và trải nghiệm các luồng nghiệp v�
 ---
 
 ### Kịch bản 2: Nghiệp vụ Khách thuê trọ & Thanh toán trực tuyến payOS
-- **Bước 1:** Đăng nhập với tài khoản `renter.binh@demo.vn` / mật khẩu `123456`.
+- **Bước 1:** Đăng nhập với tài khoản `tranthanhbinh@gmail.com` / mật khẩu `123456`.
 - **Bước 2:** Xem thông tin phòng đang thuê, tiền phòng hàng tháng, ngày bắt đầu và kết thúc hợp đồng.
 - **Bước 3:** Vào mục **Hóa đơn**, chọn hóa đơn cần thanh toán.
 - **Bước 4:** Bấm nút **Thanh toán trực tuyến**: Hệ thống gọi cổng payOS tạo liên kết thanh toán kèm mã VietQR thật (số tiền tượng trưng 2.000đ).
@@ -167,7 +167,7 @@ Thầy/Cô có thể đăng nhập và trải nghiệm các luồng nghiệp v�
 ---
 
 ### Kịch bản 3: Nghiệp vụ Quản trị hệ thống (Admin SaaS)
-- **Bước 1:** Đăng nhập với tài khoản `admin@demo.vn` / mật khẩu `123456`.
+- **Bước 1:** Đăng nhập với tài khoản `adminnhatro@gmail.com` / mật khẩu `123456`.
 - **Bước 2 (Quản lý Tenant):** Xem danh sách tất cả các chủ trọ trên toàn hệ thống, ngày đăng ký, gói dịch vụ đang sử dụng và thời hạn thuê bao.
 - **Bước 3 (Quản lý Gói dịch vụ):** Xem và chỉnh sửa các gói SaaS (Cơ bản, Nâng cao), cấu hình giới hạn số nhà trọ và số phòng tối đa cho từng gói.
 - **Bước 4 (Bảo mật tài khoản):** Khóa hoặc mở khóa tài khoản người dùng khi cần thiết.
