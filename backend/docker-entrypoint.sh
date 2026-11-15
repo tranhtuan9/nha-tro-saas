@@ -12,7 +12,10 @@ else
   echo "[entrypoint] DATABASE_URL not set, skipping migrate deploy"
 fi
 
-if [ "$RUN_SEED" = "true" ]; then
+if [ "$RUN_SEED_DEMO" = "true" ]; then
+  echo "[entrypoint] Running seed:demo (RUN_SEED_DEMO=true)..."
+  npx tsx prisma/seed-demo.ts --yes || npm run seed:demo || true
+elif [ "$RUN_SEED" = "true" ]; then
   echo "[entrypoint] Running seed (RUN_SEED=true)..."
   npx tsx prisma/seed.ts || npm run seed || true
 fi

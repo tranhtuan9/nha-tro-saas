@@ -1,6 +1,6 @@
 # Hệ Thống Quản Lý Nhà Trọ SaaS (Multi-tenant)
 
-> **Đồ án / Khóa luận tốt nghiệp:** Xây dựng nền tảng SaaS Multi-tenant quản lý nhà trọ, tích hợp thanh toán trực tuyến VietQR (payOS) và Trợ lý AI thông minh hỗ trợ vận hành bằng tiếng Việt.
+> **Đồ án tốt nghiệp:** Xây dựng nền tảng SaaS Multi-tenant quản lý nhà trọ, tích hợp thanh toán trực tuyến VietQR (payOS) và Trợ lý AI thông minh hỗ trợ vận hành bằng tiếng Việt.
 
 ---
 
@@ -116,6 +116,21 @@ Lệnh trên sẽ tự động khởi tạo container PostgreSQL 16 tại cổng
    npm run dev
    ```
    Giao diện web sẽ sẵn sàng tại địa chỉ: **`http://localhost:3000`**.
+
+---
+
+### Tùy chọn nâng cao: Khởi chạy trọn gói qua Docker Compose (Demo độc lập)
+
+Đối với môi trường thử nghiệm hoặc máy chủ triển khai không cài đặt sẵn môi trường Node.js cục bộ, dự án cung cấp tệp cấu hình mở rộng `docker-compose.full.yml` điều phối tự động cả 3 dịch vụ (**PostgreSQL 16**, **Backend Express**, **Frontend Next.js**):
+
+```bash
+# Khởi chạy toàn bộ 3 dịch vụ bằng một lệnh duy nhất:
+docker compose -f docker-compose.full.yml up --build -d
+```
+
+> [!NOTE]
+> - **Nguyên tắc bảo mật:** Toàn bộ các khóa cấu hình bí mật (Google Gemini API, payOS, JWT Secret) tuyệt đối không nhúng cứng vào Docker Image mà được nạp an toàn từ tệp `backend/.env` tại thời điểm khởi chạy (runtime).
+> - **Khuyến nghị phát triển:** Phương thức khởi chạy từng bước với Node.js ở trên là lựa chọn tối ưu khi lập trình và chấm thi thực nghiệm nhờ khả năng phản hồi tức thì và tính năng Hot-Reload trực tiếp.
 
 ---
 

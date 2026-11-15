@@ -24,7 +24,7 @@ COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/scripts ./scripts
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
-RUN chmod +x ./docker-entrypoint.sh
+RUN sed -i 's/\r$//' ./docker-entrypoint.sh && chmod +x ./docker-entrypoint.sh
 EXPOSE 4000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=30 CMD node -e "require('http').get('http://localhost:4000/api/health',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 ENTRYPOINT ["./docker-entrypoint.sh"]
