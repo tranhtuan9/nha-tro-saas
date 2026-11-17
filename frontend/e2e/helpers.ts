@@ -4,7 +4,7 @@ export async function login(page: Page, email: string, password: string): Promis
   await page.goto("/login");
   await page.locator("#login-email").fill(email);
   await page.locator("#login-password").fill(password);
-  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  await page.getByRole("button", { name: /Đăng nhập/ }).click();
   await expect(page).not.toHaveURL(/\/login/);
 }
 

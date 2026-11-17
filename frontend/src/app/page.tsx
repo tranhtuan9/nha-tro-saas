@@ -110,10 +110,10 @@ export default function LandingPage() {
                   <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3">
                     <div className="flex items-center gap-2">
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">AI</span>
-                      <p className="text-xs font-semibold text-blue-950">Gợi ý từ Trợ lý AI</p>
+                      <p className="text-xs font-semibold text-blue-950">Trợ lý AI (Function Calling)</p>
                     </div>
                     <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
-                      Đã phát hiện 2 phòng chưa chốt số điện nước kỳ này. Bạn có muốn gửi thông báo nhắc không?
+                      Hỗ trợ tra cứu phòng trống, doanh thu và soạn thảo đề xuất nghiệp vụ có chủ trọ duyệt (Human-in-the-Loop).
                     </p>
                   </div>
                 </div>
@@ -174,7 +174,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="mt-4 text-lg font-bold text-slate-900">Hóa đơn & QR payOS</h3>
                 <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                  Sinh hóa đơn hàng loạt chỉ trong một chạm. Khách thuê quét mã VietQR payOS để thanh toán, hệ thống tự động gạch nợ tức thì.
+                  Lập hóa đơn nhanh chóng, tự động kết chuyển chỉ số điện nước. Khách thuê quét mã VietQR payOS để thanh toán, hệ thống tự động gạch nợ tức thì.
                 </p>
               </div>
               <div className="mt-6 border-t border-slate-200/60 pt-4 text-xs text-slate-400">

@@ -9,14 +9,14 @@ test("chủ nhà đăng ký, tạo nhà trọ và phòng đầu tiên", async ({
   const roomCode = `P.${stamp}`;
 
   await page.goto("/register");
-  await page.locator("#register-full-name").fill("Chủ nhà kiểm thử E2E");
-  await page.locator("#register-email").fill(email);
-  await page.locator("#register-phone").fill("0901234567");
-  await page.locator("#register-tenant").fill(tenantName);
-  await page.locator("#register-password").fill(password);
-  await page.locator("#register-confirm").fill(password);
-  await page.getByRole("checkbox", { name: /điều khoản sử dụng/ }).check();
-  await page.getByRole("button", { name: "Đăng ký", exact: true }).click();
+  await page.locator("#reg-fullname").fill("Chủ nhà kiểm thử E2E");
+  await page.locator("#reg-email").fill(email);
+  await page.locator("#reg-phone").fill("0901234567");
+  await page.locator("#reg-tenant").fill(tenantName);
+  await page.locator("#reg-password").fill(password);
+  await page.locator("#reg-confirm").fill(password);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Tạo tài khoản|Đăng ký/ }).click();
 
   await expect(page).toHaveURL(/\/landlord\/overview/);
 

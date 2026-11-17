@@ -119,6 +119,35 @@ Lệnh trên sẽ tự động khởi tạo container PostgreSQL 16 tại cổng
 
 ---
 
+### Bước 4: Cấu hình ngrok nhận Webhook thanh toán payOS (Tùy chọn kiểm thử thanh toán online)
+
+Do cổng thanh toán payOS gửi kết quả giao dịch qua Webhook từ Internet về máy chủ, khi chạy thử nghiệm trên máy tính cá nhân (`localhost:4000`), cần mở một đường hầm (tunnel) qua ngrok để máy chủ tiếp nhận Webhook và tự động gạch nợ hóa đơn:
+
+1. **Cài đặt ngrok và kích hoạt:**
+   - Tải ngrok từ [ngrok.com/download](https://ngrok.com/download) và cấu hình mã xác thực Authtoken theo tài khoản của bạn:
+     ```bash
+     ngrok config add-authtoken <TOKEN_CỦA_BẠN>
+     ```
+
+2. **Lấy tên miền tĩnh miễn phí (Cố định vĩnh viễn):**
+   - Đăng nhập trang quản trị ngrok: [dashboard.ngrok.com/cloud-edge/domains](https://dashboard.ngrok.com/cloud-edge/domains).
+   - ngrok tặng sẵn **1 Static Domain miễn phí** cho mỗi tài khoản (ví dụ: `your-domain.ngrok-free.app` hoặc `your-domain.ngrok-free.dev`). Bấm **Copy** tên miền này.
+   - Khởi chạy ngrok với tên miền cố định:
+     ```bash
+     ngrok http --domain=your-domain.ngrok-free.app 4000
+     ```
+     *(Nhờ tên miền cố định, URL không bao giờ bị thay đổi khi tắt đi bật lại, chỉ cần cấu hình lên payOS đúng một lần duy nhất).*
+
+3. **Đăng ký Webhook URL trên payOS:**
+   - Truy cập trang quản trị [my.payos.vn](https://my.payos.vn/) $\rightarrow$ Chọn Kênh thanh toán $\rightarrow$ **Cài đặt Webhook**.
+   - Điền đường dẫn Webhook chuẩn của hệ thống:
+     ```
+     https://your-domain.ngrok-free.app/api/webhooks/payos
+     ```
+   - Bấm **Xác nhận**. *(Hoặc khai báo biến `PAYOS_WEBHOOK_URL` trong file `backend/.env` rồi chạy lệnh `npm run payos:confirm-webhook` tại thư mục `backend` để tự động xác nhận qua SDK)*.
+
+---
+
 ### Tùy chọn nâng cao: Khởi chạy trọn gói qua Docker Compose (Demo độc lập)
 
 Đối với môi trường thử nghiệm hoặc máy chủ triển khai không cài đặt sẵn môi trường Node.js cục bộ, dự án cung cấp tệp cấu hình mở rộng `docker-compose.full.yml` điều phối tự động cả 3 dịch vụ (**PostgreSQL 16**, **Backend Express**, **Frontend Next.js**):
@@ -186,34 +215,3 @@ Thầy/Cô có thể đăng nhập và trải nghiệm các luồng nghiệp v�
 - **Bước 2 (Quản lý Tenant):** Xem danh sách tất cả các chủ trọ trên toàn hệ thống, ngày đăng ký, gói dịch vụ đang sử dụng và thời hạn thuê bao.
 - **Bước 3 (Quản lý Gói dịch vụ):** Xem và chỉnh sửa các gói SaaS (Cơ bản, Nâng cao), cấu hình giới hạn số nhà trọ và số phòng tối đa cho từng gói.
 - **Bước 4 (Bảo mật tài khoản):** Khóa hoặc mở khóa tài khoản người dùng khi cần thiết.
-
----
-
-## 7. Điểm nổi bật về kiến trúc và an toàn hệ thống
-
-1. **Phân lập dữ liệu triệt để với PostgreSQL Row-Level Security (RLS):**
-   - Không chỉ dựa vào mệnh đề `WHERE tenant_id = ...` ở tầng ứng dụng, hệ thống kích hoạt chính sách RLS trực tiếp trong lõi CSDL PostgreSQL.
-   - Phân chia 3 vai trò CSDL rõ ràng:
-     - `nha_tro_owner`: Chỉ dùng để chạy migration và seed dữ liệu.
-     - `app_user`: Dành cho toàn bộ API nghiệp vụ thường nhật, bị RLS bắt buộc cô lập dữ liệu theo từng Tenant và từng Khách thuê.
-     - `app_system`: Có quyền `BYPASSRLS`, chỉ dùng giới hạn cho module xác thực, webhook thanh toán và admin hệ thống.
-2. **Trợ lý AI thiết kế theo nguyên tắc an toàn nghiệp vụ:**
-   - **Mô hình Human-in-the-Loop:** AI không bao giờ tự ý sửa đổi hay ghi đè CSDL mà chỉ tạo đề xuất dạng `PROPOSED`; chỉ khi chủ nhà chủ động bấm xác nhận trên màn hình thì thao tác mới được ghi nhận.
-   - **Quy tắc hỏi lại khi thiếu dữ liệu:** AI không được phép tự ý bịa đặt kỳ thanh toán, ngày tháng hay số tiền nếu người dùng chưa cung cấp đủ thông tin.
-   - **Chống Prompt Injection:** Dữ liệu tra cứu được đặt trong khối cách ly an toàn, ngăn chặn người dùng chèn chỉ thị độc hại để thao túng câu lệnh hệ thống.
-3. **Tích hợp thanh toán payOS chuẩn xác thực chữ ký:**
-   - Xác thực chữ ký số bằng thuật toán HMAC-SHA256 trên raw body của Webhook.
-   - Xử lý giao dịch theo nguyên tắc Idempotent: đảm bảo một giao dịch không bao giờ bị cộng tiền hoặc kích hoạt trạng thái hai lần.
-
----
-
-## 8. Chạy kiểm thử tự động (Automated Testing)
-
-Toàn bộ hệ thống được bảo vệ bởi bộ kiểm thử tích hợp chạy trực tiếp trên cơ sở dữ liệu PostgreSQL thật (không mock database):
-
-```bash
-cd backend
-npm test
-```
-
-*Kết quả kiểm thử đạt 17/17 test suites, 444/444 test cases thành công.*
