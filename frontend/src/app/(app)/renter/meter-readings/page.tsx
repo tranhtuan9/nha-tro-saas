@@ -133,7 +133,7 @@ export default function RenterMeterReadingsPage() {
               Ngày ghi: {formatDate(latest.createdAt)}
             </p>
             <Badge tone={latest.anomaly ? "warning" : "success"} dot>
-              {latest.anomaly ? "Có bất thường" : "Bình thường"}
+              {latest.anomaly ? "Thay đồng hồ" : "Bình thường"}
             </Badge>
           </div>
         )}
@@ -186,7 +186,7 @@ export default function RenterMeterReadingsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge tone={mr.anomaly ? "warning" : "success"} dot>
-                        {mr.anomaly ? "Bất thường" : "Bình thường"}
+                        {mr.anomaly ? "Thay đồng hồ" : "Bình thường"}
                       </Badge>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-muted">

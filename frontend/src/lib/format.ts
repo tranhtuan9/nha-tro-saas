@@ -2,7 +2,7 @@ export function formatCurrency(value: string | number | null | undefined): strin
   if (value === null || value === undefined || value === "") return "—";
   const amount = typeof value === "number" ? value : Number(String(value).replace(/[,\s]/g, ""));
   if (!Number.isFinite(amount)) return "—";
-  return `${Math.round(amount).toLocaleString("vi-VN")} đ`;
+  return `${Math.round(amount).toLocaleString("vi-VN")}\u00A0đ`;
 }
 
 export function formatDate(value: string | Date | null | undefined): string {

@@ -23,6 +23,7 @@ import { FilterBar, SearchInput } from "@/components/ui/FilterBar";
 import { Field, Select, TextInput } from "@/components/ui/form";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { Modal } from "@/components/ui/Modal";
+import { MonthPicker } from "@/components/ui/MonthPicker";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ActionButton, RowActions } from "@/components/ui/RowActions";
 import { useAuth } from "@/lib/auth-context";
@@ -31,6 +32,7 @@ import {
   formatBillingMonth,
   formatCurrency,
   formatDate,
+  shiftBillingMonth,
 } from "@/lib/format";
 import { usePagedList } from "@/lib/use-paged-list";
 import type {
@@ -287,14 +289,14 @@ function InvoiceCreateModal({ open, onClose, onCreated }: InvoiceCreateModalProp
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Kỳ hóa đơn" htmlFor="invoice-month" required>
-            <TextInput
+            <MonthPicker
               id="invoice-month"
-              type="month"
               value={billingMonth}
-              onChange={(event) => {
-                setBillingMonth(event.target.value);
+              onChange={(val) => {
+                setBillingMonth(val);
                 setPreview(null);
               }}
+              prefix="Kỳ "
             />
           </Field>
           <Field label="Hạn thanh toán" htmlFor="invoice-due">
@@ -424,6 +426,20 @@ function InvoiceDetailModal({ invoiceId, onClose }: InvoiceDetailModalProps) {
     { revalidateOnFocus: false },
   );
 
+  const electricUsage = useMemo(() => {
+    if (!data) return 0;
+    const unit = Number(data.electricityUnitPrice);
+    const amt = Number(data.electricityAmount);
+    return unit > 0 ? Math.round(amt / unit) : 0;
+  }, [data]);
+
+  const waterUsage = useMemo(() => {
+    if (!data) return 0;
+    const unit = Number(data.waterUnitPrice);
+    const amt = Number(data.waterAmount);
+    return unit > 0 ? Math.round(amt / unit) : 0;
+  }, [data]);
+
   return (
     <Modal
       open={invoiceId !== null}
@@ -460,8 +476,22 @@ function InvoiceDetailModal({ invoiceId, onClose }: InvoiceDetailModalProps) {
           <div className="rounded-lg border border-border">
             <div className="space-y-1.5 px-3 py-3">
               <SummaryRow label="Tiền phòng" value={data.rentAmount} />
-              <SummaryRow label="Tiền điện" value={data.electricityAmount} />
-              <SummaryRow label="Tiền nước" value={data.waterAmount} />
+              <SummaryRow
+                label={
+                  electricUsage > 0
+                    ? `Tiền điện (${electricUsage} kWh × ${Number(data.electricityUnitPrice).toLocaleString("vi-VN")} đ)`
+                    : `Tiền điện (${Number(data.electricityUnitPrice).toLocaleString("vi-VN")} đ/kWh)`
+                }
+                value={data.electricityAmount}
+              />
+              <SummaryRow
+                label={
+                  waterUsage > 0
+                    ? `Tiền nước (${waterUsage} m³ × ${Number(data.waterUnitPrice).toLocaleString("vi-VN")} đ)`
+                    : `Tiền nước (${Number(data.waterUnitPrice).toLocaleString("vi-VN")} đ/m³)`
+                }
+                value={data.waterAmount}
+              />
               <SummaryRow label="Dịch vụ" value={data.serviceAmount} />
               {data.lineItems.map((item) => (
                 <div key={item.id} className="flex justify-between pl-4 text-xs text-muted">
@@ -623,8 +653,8 @@ export default function InvoicesPage() {
     },
   ];
 
-  const summaryValue = (value: string | undefined, count: number | undefined) =>
-    summary.isLoading ? "…" : `${formatCurrency(value)} · ${count ?? 0}`;
+  const summaryValue = (value: string | undefined) =>
+    summary.isLoading ? "…" : formatCurrency(value);
 
   return (
     <div className="space-y-6">
@@ -647,25 +677,25 @@ export default function InvoicesPage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Đã phát hành"
-          value={summaryValue(summaryData?.issuedTotal, summaryData?.issuedCount)}
-          hint="Tổng hóa đơn trong kỳ"
+          value={summaryValue(summaryData?.issuedTotal)}
+          hint={`${summaryData?.issuedCount ?? 0} hóa đơn trong kỳ`}
         />
         <KpiCard
           label="Đã thu"
-          value={summaryValue(summaryData?.paidTotal, summaryData?.paidCount)}
-          hint="Hóa đơn đã thanh toán"
+          value={summaryValue(summaryData?.paidTotal)}
+          hint={`${summaryData?.paidCount ?? 0} hóa đơn đã thanh toán`}
           tone="success"
         />
         <KpiCard
           label="Chưa thu"
-          value={summaryValue(summaryData?.unpaidTotal, summaryData?.unpaidCount)}
-          hint="Hóa đơn còn chờ thanh toán"
+          value={summaryValue(summaryData?.unpaidTotal)}
+          hint={`${summaryData?.unpaidCount ?? 0} hóa đơn chờ thanh toán`}
           tone="warning"
         />
         <KpiCard
           label="Quá hạn"
-          value={summaryValue(summaryData?.overdueTotal, summaryData?.overdueCount)}
-          hint="Hóa đơn đã quá hạn"
+          value={summaryValue(summaryData?.overdueTotal)}
+          hint={`${summaryData?.overdueCount ?? 0} hóa đơn quá hạn`}
           tone="danger"
         />
       </div>
@@ -682,14 +712,15 @@ export default function InvoicesPage() {
             className="sm:w-80"
           />
           <div className="w-full sm:w-44">
-            <TextInput
-              type="month"
-              aria-label="Lọc theo kỳ"
+            <MonthPicker
               value={month}
-              onChange={(event) => {
-                setMonth(event.target.value);
+              onChange={(val) => {
+                setMonth(val);
                 setPage(1);
               }}
+              allowClear
+              placeholder="Tất cả các kỳ"
+              prefix="Kỳ "
             />
           </div>
           <div className="w-full sm:w-48">

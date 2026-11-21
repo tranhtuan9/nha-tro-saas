@@ -140,12 +140,6 @@ export default function RenterOverviewPage() {
               </>
             )}
           </div>
-          <Link
-            href="/renter/invoices"
-            className="border-t border-border px-4 py-2.5 text-xs font-semibold text-primary transition-colors hover:bg-surface-container"
-          >
-            Xem tất cả hóa đơn →
-          </Link>
         </div>
 
         {/* Hợp đồng */}

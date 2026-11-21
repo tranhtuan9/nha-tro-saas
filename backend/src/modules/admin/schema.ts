@@ -15,6 +15,7 @@ export const tenantListQuerySchema = z.object({
   search: z.string().trim().optional(),
   status: z.enum(['ACTIVE', 'SUSPENDED']).optional(),
   subscriptionStatus: z.enum(['active', 'expiring_soon', 'expired']).optional(),
+  planId: z.string().uuid().optional(),
 });
 
 export const userIdParamSchema = z.object({

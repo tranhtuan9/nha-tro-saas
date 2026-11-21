@@ -83,6 +83,7 @@ export default function AdminTenantsPage() {
     page,
     pageSize: 20,
     status: status || undefined,
+    planId: planFilter || undefined,
     search: search || undefined,
   });
 
@@ -254,9 +255,9 @@ export default function AdminTenantsPage() {
     }
   }
 
-  // Lọc theo gói ở phía client nếu có chọn
+  // Lọc theo gói nếu có chọn
   const filteredTenantRows = planFilter
-    ? list.rows.filter((t) => t.planId === planFilter || (planFilter === "none" && !t.planId))
+    ? list.rows.filter((t) => t.planId === planFilter || t.plan?.id === planFilter)
     : list.rows;
 
   return (
@@ -355,7 +356,10 @@ export default function AdminTenantsPage() {
             <div className="w-full sm:w-48">
               <Select
                 value={planFilter}
-                onChange={(e) => setPlanFilter(e.target.value)}
+                onChange={(e) => {
+                  setPlanFilter(e.target.value);
+                  setPage(1);
+                }}
               >
                 <option value="">Gói</option>
                 {plans.map((p) => (
@@ -713,7 +717,7 @@ export default function AdminTenantsPage() {
         message={
           <p>
             Gói <span className="font-semibold">{deactivateTarget?.name}</span> sẽ ngừng kích hoạt và
-            không còn hiển thị để đăng ký. Các Tenant đang sử dụng gói này không bị ảnh hưởng.
+            không còn hiển thị để đăng ký. Các nhà trọ đang sử dụng gói này không bị ảnh hưởng.
           </p>
         }
       />

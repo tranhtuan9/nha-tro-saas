@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import {
   getApiErrorMessage,
@@ -15,6 +16,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/format";
 import type { NotificationItem } from "@/lib/types";
@@ -39,13 +41,40 @@ const TYPE_META: Record<string, { label: string; tone: string; icon: "receipt_lo
     tone: "bg-warning-soft text-warning-text",
     icon: "alert",
   },
+  NEW_SUPPORT_REQUEST: {
+    label: "Phản ánh mới",
+    tone: "bg-warning-soft text-warning-text",
+    icon: "info",
+  },
+  SUPPORT_REQUEST_RESPONDED: {
+    label: "Phản hồi phản ánh",
+    tone: "bg-info-soft text-info-text",
+    icon: "info",
+  },
 };
 
 function meta(type: string) {
   return TYPE_META[type] ?? { label: "Thông báo", tone: "bg-surface-container text-muted", icon: "info" as const };
 }
 
+function getNotificationHref(item: NotificationItem, role?: string): string | null {
+  const base = role === "RENTER" ? "/renter" : "/landlord";
+  if (item.type === "NEW_INVOICE" || item.type.startsWith("PAYMENT_")) {
+    return `${base}/invoices`;
+  }
+  if (
+    item.type === "NEW_SUPPORT_REQUEST" ||
+    item.type === "SUPPORT_REQUEST_RESPONDED" ||
+    item.type.includes("SUPPORT")
+  ) {
+    return `${base}/support-requests`;
+  }
+  return null;
+}
+
 export function NotificationsView() {
+  const router = useRouter();
+  const { user } = useAuth();
   const [tab, setTab] = useState<"all" | "unread">("all");
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -71,16 +100,22 @@ export function NotificationsView() {
   }
 
   async function onRead(item: NotificationItem) {
-    if (item.isRead || readingId) return;
-    setReadingId(item.id);
-    setError(null);
-    try {
-      await markNotificationRead(item.id);
-      await refresh();
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-    } finally {
-      setReadingId(null);
+    if (readingId) return;
+    const targetHref = getNotificationHref(item, user?.role);
+    if (!item.isRead) {
+      setReadingId(item.id);
+      setError(null);
+      try {
+        await markNotificationRead(item.id);
+        await refresh();
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setReadingId(null);
+      }
+    }
+    if (targetHref) {
+      router.push(targetHref);
     }
   }
 
@@ -196,6 +231,9 @@ export function NotificationsView() {
                       <span className="mt-1.5 block text-xs text-placeholder">
                         {formatDateTime(item.createdAt)}
                       </span>
+                    </span>
+                    <span className="self-center shrink-0 text-muted/60 transition-transform group-hover:translate-x-0.5">
+                      <Icon name="chevron_right" className="h-4 w-4" />
                     </span>
                   </button>
                 </li>

@@ -336,10 +336,45 @@ const toolDefinitions: ToolDefinition[] = [
       if (!resolvedContract.ok) return { type: 'clarification', message: resolvedContract.message };
 
       const services: Array<{ serviceId: string; quantity: number }> = [];
-      for (const item of args.serviceNames as Array<{ name: string; quantity: number }>) {
-        const resolved = await resolveService(db, resolvedRoom.value.propertyId, item.name);
-        if (!resolved.ok) return { type: 'clarification', message: resolved.message };
-        services.push({ serviceId: resolved.value, quantity: item.quantity });
+      const serviceNameInputs = (args.serviceNames ?? []) as Array<{ name: string; quantity: number }>;
+      if (serviceNameInputs.length > 0) {
+        for (const item of serviceNameInputs) {
+          const resolved = await resolveService(db, resolvedRoom.value.propertyId, item.name);
+          if (!resolved.ok) return { type: 'clarification', message: resolved.message };
+          services.push({ serviceId: resolved.value, quantity: item.quantity });
+        }
+      } else {
+        // CƠ CHẾ THÔNG MINH:
+        // 1. Kế thừa dịch vụ từ hóa đơn kỳ gần nhất của chính hợp đồng này (đúng thói quen tiêu dùng thực tế của phòng)
+        const activeServices = await db.service.findMany({
+          where: { propertyId: resolvedRoom.value.propertyId, isActive: true },
+          select: { id: true },
+          orderBy: { name: 'asc' },
+        });
+        const activeIds = new Set(activeServices.map((s) => s.id));
+
+        const lastInvoice = await db.invoice.findFirst({
+          where: { contractId: resolvedContract.value },
+          orderBy: [{ billingMonth: 'desc' }, { createdAt: 'desc' }],
+          include: { lineItems: { select: { serviceId: true, quantity: true } } },
+        });
+
+        if (lastInvoice && lastInvoice.lineItems.length > 0) {
+          for (const item of lastInvoice.lineItems) {
+            // Chỉ kế thừa các dịch vụ vẫn đang hoạt động của nhà trọ
+            if (activeIds.has(item.serviceId)) {
+              services.push({ serviceId: item.serviceId, quantity: Number(item.quantity) });
+            }
+          }
+        }
+
+        // 2. Nếu phòng mới (chưa có hóa đơn trước đó hoặc hóa đơn trước không có dịch vụ nào):
+        // Mặc định áp dụng tất cả dịch vụ đang hoạt động với số lượng 1
+        if (services.length === 0) {
+          for (const s of activeServices) {
+            services.push({ serviceId: s.id, quantity: 1 });
+          }
+        }
       }
 
       const input: CreateInvoiceInput = {

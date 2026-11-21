@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import {
@@ -26,6 +27,8 @@ const TYPE_TONE: Record<string, string> = {
   PAYMENT_AMOUNT_MISMATCH: "bg-danger-soft text-danger-text",
   PAYMENT_REFUND_REQUIRED: "bg-danger-soft text-danger-text",
   PAYMENT_RECONCILE: "bg-warning-soft text-warning-text",
+  NEW_SUPPORT_REQUEST: "bg-warning-soft text-warning-text",
+  SUPPORT_REQUEST_RESPONDED: "bg-info-soft text-info-text",
 };
 
 const TYPE_ICON: Record<string, "receipt_long" | "success" | "alert" | "info"> = {
@@ -34,9 +37,27 @@ const TYPE_ICON: Record<string, "receipt_long" | "success" | "alert" | "info"> =
   PAYMENT_AMOUNT_MISMATCH: "alert",
   PAYMENT_REFUND_REQUIRED: "alert",
   PAYMENT_RECONCILE: "alert",
+  NEW_SUPPORT_REQUEST: "info",
+  SUPPORT_REQUEST_RESPONDED: "info",
 };
 
+function getNotificationHref(item: NotificationItem, href: string): string | null {
+  const base = href.includes("/renter") ? "/renter" : "/landlord";
+  if (item.type === "NEW_INVOICE" || item.type.startsWith("PAYMENT_")) {
+    return `${base}/invoices`;
+  }
+  if (
+    item.type === "NEW_SUPPORT_REQUEST" ||
+    item.type === "SUPPORT_REQUEST_RESPONDED" ||
+    item.type.includes("SUPPORT")
+  ) {
+    return `${base}/support-requests`;
+  }
+  return null;
+}
+
 export function NotificationBell({ href }: { href: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -70,12 +91,18 @@ export function NotificationBell({ href }: { href: string }) {
   const rows = list.data?.data ?? [];
 
   async function onOpenItem(item: NotificationItem) {
-    if (item.isRead) return;
-    try {
-      await markNotificationRead(item.id);
-      await Promise.all([unread.mutate(), list.mutate()]);
-    } catch (err) {
-      notifyApp({ tone: "error", message: getApiErrorMessage(err) });
+    setOpen(false);
+    const targetHref = getNotificationHref(item, href);
+    if (!item.isRead) {
+      try {
+        await markNotificationRead(item.id);
+        await Promise.all([unread.mutate(), list.mutate()]);
+      } catch (err) {
+        notifyApp({ tone: "error", message: getApiErrorMessage(err) });
+      }
+    }
+    if (targetHref) {
+      router.push(targetHref);
     }
   }
 

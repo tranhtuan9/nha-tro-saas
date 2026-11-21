@@ -57,13 +57,15 @@ export default function LandlordOverviewPage() {
         actions={
           <div className="flex items-center gap-2">
             <Link href="/landlord/invoices">
-              <Button variant="secondary" className="h-9 px-3.5 text-xs">
+              <Button variant="secondary" className="h-9 px-3.5 text-xs font-semibold">
+                <Icon name="receipt_long" className="h-4 w-4" />
                 Lập hóa đơn
               </Button>
             </Link>
             <Link href="/landlord/properties">
               <Button className="h-9 px-3.5 text-xs font-semibold">
-                + Thêm phòng
+                <Icon name="add" className="h-4 w-4" />
+                Thêm phòng
               </Button>
             </Link>
           </div>

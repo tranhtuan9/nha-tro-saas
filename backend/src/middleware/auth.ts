@@ -60,7 +60,7 @@ export async function authenticateJwt(
         next(
           ApiError.forbidden(
             'TENANT_SUSPENDED',
-            'Gói dịch vụ hoặc Tenant của bạn đang bị tạm ngưng'
+            'Hệ thống nhà trọ của bạn đang bị tạm ngưng'
           )
         );
         return;

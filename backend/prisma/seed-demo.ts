@@ -693,7 +693,7 @@ async function main(): Promise<void> {
     roomCode: 'P104',
     areaM2: 20,
     basePrice: 3000000,
-    status: RoomStatus.AVAILABLE,
+    status: RoomStatus.OCCUPIED,
   });
   const room105 = await createRoom({
     property: binhProperty1,
@@ -810,16 +810,15 @@ async function main(): Promise<void> {
     monthlyRent: 3800000,
     deposit: 0,
   });
-  await createContract({
+  const contractDung = await createContract({
     tenantId: binhMinh.id,
     roomId: room104.id,
     renterId: dung.id,
-    startOffset: -300,
-    endOffset: 60,
+    startOffset: -120,
+    endOffset: 120,
     monthlyRent: 3000000,
     deposit: 3000000,
-    status: ContractStatus.TERMINATED,
-    terminatedReason: 'Người thuê chuyển công tác',
+    status: ContractStatus.ACTIVE,
   });
   await createContract({
     tenantId: binhMinh.id,
@@ -904,6 +903,7 @@ async function main(): Promise<void> {
     services: [
       { service: p1Internet, quantity: 1 },
       { service: p1Parking, quantity: 1 },
+      { service: p1Trash, quantity: 1 },
     ],
     status: InvoiceStatus.PAID,
     payments: [{ status: PaymentStatus.PAID, paidAt: addDays(today, -20) }],
@@ -919,21 +919,39 @@ async function main(): Promise<void> {
     services: [
       { service: p1Internet, quantity: 1 },
       { service: p1Parking, quantity: 1 },
+      { service: p1Trash, quantity: 1 },
     ],
     status: InvoiceStatus.OVERDUE,
     payments: [{ status: PaymentStatus.FAILED }],
   });
 
-  // Meter reading tháng này cho P102 (chưa lập hóa đơn để chủ trọ demo nhập chỉ số và lập hóa đơn mới)
+  // Hóa đơn kỳ trước cho P104 (Dũng) để có chỉ số cũ; kỳ này (tháng 11/2026) chưa ghi chỉ số và chưa lập hóa đơn (dùng demo nhập chỉ số & lập hóa đơn thủ công)
+  await createInvoice({
+    contract: contractDung,
+    property: binhProperty1,
+    monthOffset: -1,
+    issueDate: monthStart(-1),
+    dueDate: addDays(monthStart(-1), 10),
+    electricityUsage: 85,
+    waterUsage: 4.5,
+    services: [
+      { service: p1Internet, quantity: 1 },
+      { service: p1Parking, quantity: 1 },
+    ],
+    status: InvoiceStatus.PAID,
+    payments: [{ status: PaymentStatus.PAID, paidAt: addDays(today, -20) }],
+  });
+
+  // Meter reading tháng này cho P102 (chưa lập hóa đơn để demo Trợ lý AI lập hóa đơn Human-in-the-Loop)
   await prisma.meterReading.create({
     data: {
       tenantId: contractBinh.tenantId,
       roomId: contractBinh.roomId,
       billingMonth: monthStart(0),
-      electricityIndex: 1095,
-      waterIndex: 104,
-      electricityUsage: 5,
-      waterUsage: 0,
+      electricityIndex: 1195,
+      waterIndex: 109,
+      electricityUsage: 105,
+      waterUsage: 5,
       createdAt: monthStart(0),
     },
   });
@@ -948,6 +966,7 @@ async function main(): Promise<void> {
     services: [
       { service: p1Internet, quantity: 1 },
       { service: p1Parking, quantity: 1 },
+      { service: p1Trash, quantity: 1 },
     ],
     status: InvoiceStatus.CANCELLED,
     payments: [{ status: PaymentStatus.CANCELLED }],
@@ -993,6 +1012,7 @@ async function main(): Promise<void> {
     services: [
       { service: p1Internet, quantity: 1 },
       { service: p1Parking, quantity: 1 },
+      { service: p1Trash, quantity: 1 },
     ],
     status: InvoiceStatus.PAID,
     payments: [{ status: PaymentStatus.PAID, paidAt: addDays(today, -18) }],
@@ -1437,7 +1457,7 @@ async function main(): Promise<void> {
     { email: 'nguyenhoaian@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng hiệu lực, có hóa đơn chờ thu' },
     { email: 'tranthanhbinh@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng sắp hết hạn' },
     { email: 'lethichi@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng quá ngày kết thúc, hóa đơn quá hạn' },
-    { email: 'phamvandung@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng đã chấm dứt' },
+    { email: 'phamvandung@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng hiệu lực, dùng demo lập hóa đơn thủ công' },
     { email: 'hoangthiem@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hợp đồng đã kết thúc' },
     { email: 'nguyentruonggiang@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Hóa đơn đã thanh toán' },
     { email: 'buithuha@gmail.com', vaiTro: 'RENTER', tenant: binhMinh.name, ghiChu: 'Chưa từng đăng nhập' },

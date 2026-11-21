@@ -456,7 +456,7 @@ export default function MetersServicesPage() {
         tone: retry.failed.length === 0 ? "success" : "error",
         message:
           retry.failed.length === 0
-            ? `Đã lưu ${retry.saved.length} dòng chỉ số (đánh dấu bất thường)`
+            ? `Đã lưu ${retry.saved.length} dòng chỉ số (xác nhận thay đồng hồ)`
             : `Chỉ lưu được ${retry.saved.length}/${pendingAnomaly.length} dòng chỉ số`,
       });
       setPendingAnomaly([]);
@@ -769,13 +769,13 @@ export default function MetersServicesPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <KpiCard
               label="Điện tiêu thụ kỳ"
-              value={sheetLoading ? "…" : formatIndex(usageSummary.electricity)}
-              hint="kWh"
+              value={sheetLoading ? "…" : `${formatIndex(usageSummary.electricity)} kWh`}
+              hint="Tổng tiêu thụ toàn cơ sở"
             />
             <KpiCard
               label="Nước tiêu thụ kỳ"
-              value={sheetLoading ? "…" : formatIndex(usageSummary.water)}
-              hint="m³"
+              value={sheetLoading ? "…" : `${formatIndex(usageSummary.water)} m³`}
+              hint="Tổng tiêu thụ toàn cơ sở"
             />
             <KpiCard
               label="Phòng đã ghi"
@@ -1050,7 +1050,7 @@ export default function MetersServicesPage() {
 
       <ConfirmDialog
         open={pendingAnomaly.length > 0}
-        title="Xác nhận chỉ số giảm"
+        title="Xác nhận chỉ số điện nước giảm"
         confirmLabel="Xác nhận lưu"
         loading={saving}
         onCancel={handleCancelAnomaly}
@@ -1058,10 +1058,11 @@ export default function MetersServicesPage() {
         message={
           <>
             <p>
-              Chỉ số mới nhỏ hơn chỉ số kỳ trước tại{" "}
-              <span className="font-semibold">{pendingAnomaly.length} phòng</span>. Nếu xác nhận,
-              hệ thống coi như thay đồng hồ: tiêu thụ kỳ này được tính bằng chính chỉ số mới (đếm
-              từ 0, không bao giờ âm) và dòng chỉ số được đánh dấu bất thường.
+              Chỉ số mới đang nhỏ hơn chỉ số kỳ trước tại{" "}
+              <span className="font-semibold">{pendingAnomaly.length} phòng</span>.
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              Vui lòng kiểm tra lại để tránh nhập nhầm số. Nếu phòng vừa thay đồng hồ mới, bấm <strong>Xác nhận lưu</strong> để hệ thống tính tiền điện nước bắt đầu từ chỉ số mới này.
             </p>
             <ul className="mt-2 max-h-40 list-inside list-disc space-y-0.5 overflow-y-auto text-sm">
               {pendingAnomaly.map((item) => (

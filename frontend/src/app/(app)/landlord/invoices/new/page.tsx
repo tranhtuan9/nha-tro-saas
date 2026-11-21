@@ -8,18 +8,22 @@ import {
   createInvoice,
   getActiveServices,
   getApiErrorMessage,
+  getInvoice,
+  getInvoices,
   getMeterSheet,
   notifyApp,
   previewInvoice,
 } from "@/lib/api";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { MonthPicker } from "@/components/ui/MonthPicker";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/form";
 import {
   currentBillingMonth,
   formatBillingMonth,
   formatCurrency,
+  shiftBillingMonth,
 } from "@/lib/format";
 import { usePagedList } from "@/lib/use-paged-list";
 import type {
@@ -40,6 +44,7 @@ export default function CreateInvoicePage() {
   const [excludedServiceIds, setExcludedServiceIds] = useState<Record<string, boolean>>({});
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [preview, setPreview] = useState<InvoicePreview | null>(null);
+  const [isInherited, setIsInherited] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -110,6 +115,56 @@ export default function CreateInvoicePage() {
         quantity: quantities[s.id] ?? 1,
       }));
   }, [services, excludedServiceIds, quantities]);
+
+  // Tự động kế thừa dịch vụ từ hóa đơn kỳ gần nhất của hợp đồng này (nếu có)
+  useEffect(() => {
+    if (!contractId || services.length === 0) return;
+    let cancelled = false;
+
+    async function inheritFromLastInvoice() {
+      try {
+        const paged = await getInvoices({ contractId, pageSize: 1 });
+        if (cancelled) return;
+
+        if (!paged.data || paged.data.length === 0) {
+          setIsInherited(false);
+          return;
+        }
+
+        const latestInvoice = await getInvoice(paged.data[0].id);
+        if (cancelled) return;
+
+        if (!latestInvoice.lineItems || latestInvoice.lineItems.length === 0) {
+          setIsInherited(false);
+          return;
+        }
+
+        const newQuantities: Record<string, number> = {};
+        const newExcluded: Record<string, boolean> = {};
+
+        for (const s of services) {
+          const matched = latestInvoice.lineItems.find((item) => item.serviceId === s.id);
+          if (matched) {
+            newQuantities[s.id] = Number(matched.quantity) || 1;
+            newExcluded[s.id] = false;
+          } else {
+            newExcluded[s.id] = true;
+          }
+        }
+
+        setQuantities(newQuantities);
+        setExcludedServiceIds(newExcluded);
+        setIsInherited(true);
+      } catch {
+        setIsInherited(false);
+      }
+    }
+
+    inheritFromLastInvoice();
+    return () => {
+      cancelled = true;
+    };
+  }, [contractId, services]);
 
   // Tự động gọi preview khi các thông tin thay đổi
   useEffect(() => {
@@ -225,14 +280,11 @@ export default function CreateInvoicePage() {
 
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Kỳ hóa đơn</label>
-                <Select
+                <MonthPicker
                   value={billingMonth}
-                  onChange={(e) => setBillingMonth(e.target.value)}
-                >
-                  <option value={currentBillingMonth()}>{formatBillingMonth(currentBillingMonth())}</option>
-                  <option value="2026-11">Kỳ 11/2026</option>
-                  <option value="2026-09">Kỳ 09/2026</option>
-                </Select>
+                  onChange={(val) => setBillingMonth(val)}
+                  prefix="Kỳ "
+                />
               </div>
             </div>
           </section>
@@ -271,7 +323,15 @@ export default function CreateInvoicePage() {
 
           {/* 3. Dịch vụ áp dụng */}
           <section className="space-y-3">
-            <h2 className="text-sm font-bold text-slate-900">3. Dịch vụ áp dụng</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-slate-900">3. Dịch vụ áp dụng</h2>
+              {isInherited && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-100">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+                  Tự động kế thừa từ hóa đơn kỳ gần nhất
+                </span>
+              )}
+            </div>
             <div className="rounded-xl border border-slate-200 overflow-hidden">
               <table className="w-full text-left text-sm border-collapse">
                 <thead>

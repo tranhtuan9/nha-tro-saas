@@ -122,7 +122,7 @@ function assertNotDecreased(
   if (decreased && !confirmAnomaly) {
     throw ApiError.conflict(
       'METER_INDEX_DECREASED',
-      'Chỉ số mới nhỏ hơn chỉ số kỳ trước. Gửi lại với confirmAnomaly=true nếu đã thay đồng hồ.',
+      'Chỉ số mới nhỏ hơn chỉ số kỳ trước. Vui lòng kiểm tra lại số liệu hoặc xác nhận nếu phòng vừa thay đồng hồ.',
       {
         previousElectricityIndex: previous.electricityIndex.toString(),
         previousWaterIndex: previous.waterIndex.toString(),

@@ -117,6 +117,12 @@ Lệnh trên sẽ tự động khởi tạo container PostgreSQL 16 tại cổng
    ```
    Giao diện web sẽ sẵn sàng tại địa chỉ: **`http://localhost:3000`**.
 
+   👉 **Đăng nhập trải nghiệm ngay:**
+   - **Chủ trọ (Nhiều dữ liệu nhất):** `nguyenvanbinh@gmail.com` | Mật khẩu: `123456`
+   - **Khách thuê (Demo quét mã payOS):** `tranthanhbinh@gmail.com` | Mật khẩu: `123456`
+   - **Quản trị viên SaaS (Admin):** `adminnhatro@gmail.com` | Mật khẩu: `123456`
+   *(Xem danh sách đầy đủ tất cả các vai trò tại **Mục 5** bên dưới).*
+
 ---
 
 ### Bước 4: Cấu hình ngrok nhận Webhook thanh toán payOS (Tùy chọn kiểm thử thanh toán online)

@@ -84,12 +84,33 @@ function InvoiceDetailPanel({ invoice, onPay, paying }: InvoiceDetailPanelProps)
   const payable =
     invoice.status === "UNPAID" || invoice.status === "OVERDUE";
 
+  const electricUsage = useMemo(() => {
+    if (!data) return 0;
+    const unit = Number(data.electricityUnitPrice);
+    const amt = Number(data.electricityAmount);
+    return unit > 0 ? Math.round(amt / unit) : 0;
+  }, [data]);
+
+  const waterUsage = useMemo(() => {
+    if (!data) return 0;
+    const unit = Number(data.waterUnitPrice);
+    const amt = Number(data.waterAmount);
+    return unit > 0 ? Math.round(amt / unit) : 0;
+  }, [data]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-ink">
-          Chi tiết hóa đơn kỳ {formatBillingMonth(invoice.billingMonth)}
-        </h2>
+        <div>
+          <h2 className="text-sm font-semibold text-ink">
+            Chi tiết hóa đơn kỳ {formatBillingMonth(invoice.billingMonth)}
+          </h2>
+          {data && (
+            <p className="mt-0.5 text-xs text-muted">
+              Hạn thanh toán: {formatDate(data.dueDate)}
+            </p>
+          )}
+        </div>
         <Badge tone={STATUS_TONE[invoice.status]} dot>
           {STATUS_LABEL[invoice.status]}
         </Badge>
@@ -101,11 +122,19 @@ function InvoiceDetailPanel({ invoice, onPay, paying }: InvoiceDetailPanelProps)
         <div className="space-y-1.5 text-sm">
           <Row label="Tiền phòng" value={data.rentAmount} />
           <Row
-            label={`Tiền điện (${data.electricityUnitPrice} đ/kWh)`}
+            label={
+              electricUsage > 0
+                ? `Tiền điện (${electricUsage} kWh × ${Number(data.electricityUnitPrice).toLocaleString("vi-VN")} đ)`
+                : `Tiền điện (${Number(data.electricityUnitPrice).toLocaleString("vi-VN")} đ/kWh)`
+            }
             value={data.electricityAmount}
           />
           <Row
-            label={`Tiền nước (${data.waterUnitPrice} đ/m³)`}
+            label={
+              waterUsage > 0
+                ? `Tiền nước (${waterUsage} m³ × ${Number(data.waterUnitPrice).toLocaleString("vi-VN")} đ)`
+                : `Tiền nước (${Number(data.waterUnitPrice).toLocaleString("vi-VN")} đ/m³)`
+            }
             value={data.waterAmount}
           />
           {data.lineItems.map((item) => (

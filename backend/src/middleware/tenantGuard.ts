@@ -23,7 +23,7 @@ export async function requireActiveSubscription(
   }
 
   if (!req.user.tenantId) {
-    next(ApiError.forbidden('NO_TENANT', 'Tài khoản không thuộc Tenant hợp lệ'));
+    next(ApiError.forbidden('NO_TENANT', 'Tài khoản không thuộc nhà trọ hợp lệ'));
     return;
   }
 
@@ -34,7 +34,7 @@ export async function requireActiveSubscription(
     });
 
     if (!tenant) {
-      next(ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy thông tin Tenant'));
+      next(ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy thông tin nhà trọ'));
       return;
     }
 

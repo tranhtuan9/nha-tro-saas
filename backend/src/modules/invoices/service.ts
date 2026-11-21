@@ -214,6 +214,8 @@ type BuiltInvoice = {
   billingMonth: Date;
   electricityUnitPrice: Prisma.Decimal;
   waterUnitPrice: Prisma.Decimal;
+  electricityUsage: Prisma.Decimal;
+  waterUsage: Prisma.Decimal;
   rentAmount: Prisma.Decimal;
   electricityAmount: Prisma.Decimal;
   waterAmount: Prisma.Decimal;
@@ -293,7 +295,7 @@ async function buildInvoiceData(
   if (!meterReading) {
     throw ApiError.conflict(
       'METER_READING_REQUIRED',
-      'Phòng chưa có chỉ số điện nước cho kỳ này. Hãy ghi chỉ số (UC16) trước khi lập hóa đơn'
+      'Phòng chưa có chỉ số điện nước cho kỳ này. Vui lòng ghi chỉ số trước khi lập hóa đơn'
     );
   }
   const lockedByInvoice = await tx.invoice.findFirst({
@@ -376,6 +378,8 @@ async function buildInvoiceData(
     billingMonth,
     electricityUnitPrice,
     waterUnitPrice,
+    electricityUsage: meterReading.electricityUsage,
+    waterUsage: meterReading.waterUsage,
     rentAmount,
     electricityAmount,
     waterAmount,
@@ -395,6 +399,8 @@ function serializeBuiltInvoice(built: BuiltInvoice) {
     effectiveStatus: InvoiceStatus.UNPAID,
     electricityUnitPrice: built.electricityUnitPrice.toString(),
     waterUnitPrice: built.waterUnitPrice.toString(),
+    electricityUsage: built.electricityUsage.toString(),
+    waterUsage: built.waterUsage.toString(),
     rentAmount: built.rentAmount.toString(),
     electricityAmount: built.electricityAmount.toString(),
     waterAmount: built.waterAmount.toString(),

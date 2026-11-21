@@ -104,7 +104,7 @@ export async function createRoom(context: TenantContext, input: CreateRoomInput)
       include: { plan: true },
     });
     if (!tenant || !tenant.plan) {
-      throw ApiError.notFound('PLAN_NOT_FOUND', 'Không tìm thấy gói dịch vụ của Tenant');
+      throw ApiError.notFound('PLAN_NOT_FOUND', 'Không tìm thấy gói dịch vụ của nhà trọ');
     }
 
     // Chốt 1: chỉ đếm phòng thuộc nhà trọ đang hoạt động.

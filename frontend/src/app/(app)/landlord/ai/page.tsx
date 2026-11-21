@@ -156,41 +156,84 @@ function isInvoicePreview(preview: unknown): preview is InvoicePreview {
 function ProposalPreview({ proposal }: { proposal: AiProposal }) {
   if (isInvoicePreview(proposal.preview)) {
     const preview = proposal.preview;
+    const elecUsage =
+      preview.electricityUsage ??
+      (Number(preview.electricityUnitPrice) > 0
+        ? String(Math.round(Number(preview.electricityAmount) / Number(preview.electricityUnitPrice)))
+        : "0");
+    const waterUsage =
+      preview.waterUsage ??
+      (Number(preview.waterUnitPrice) > 0
+        ? String(Math.round(Number(preview.waterAmount) / Number(preview.waterUnitPrice)))
+        : "0");
+
     return (
-      <div className="space-y-1.5 text-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-          <span>
+      <div className="space-y-3 text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2 text-xs text-slate-500">
+          <span className="font-semibold text-slate-700">
             Phòng {preview.room.roomCode} · Kỳ {formatBillingMonth(preview.billingMonth)}
           </span>
-          <span>Hạn {preview.dueDate.split("-").reverse().join("/")}</span>
+          <span>Hạn nộp: {preview.dueDate.split("-").reverse().join("/")}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-muted">Tiền phòng</span>
-          <span className="text-ink">{formatCurrency(preview.rentAmount)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted">Tiền điện</span>
-          <span className="text-ink">{formatCurrency(preview.electricityAmount)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted">Tiền nước</span>
-          <span className="text-ink">{formatCurrency(preview.waterAmount)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted">Dịch vụ</span>
-          <span className="text-ink">{formatCurrency(preview.serviceAmount)}</span>
-        </div>
-        {preview.lineItems.map((item) => (
-          <div key={item.serviceId} className="flex justify-between pl-4 text-xs text-muted">
-            <span>
-              {item.serviceName} ({item.quantity} {item.unit})
-            </span>
-            <span>{formatCurrency(item.amount)}</span>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-slate-600">
+            <span>Tiền phòng</span>
+            <span className="font-medium text-slate-900">{formatCurrency(preview.rentAmount)}</span>
           </div>
-        ))}
-        <div className="flex justify-between border-t border-border pt-2 font-semibold text-ink">
-          <span>Tổng cộng</span>
-          <span>{formatCurrency(preview.totalAmount)}</span>
+
+          <div className="flex justify-between items-center text-slate-600">
+            <span>
+              Tiền điện{" "}
+              <span className="text-xs text-slate-400">
+                ({elecUsage} kWh × {formatCurrency(preview.electricityUnitPrice)})
+              </span>
+            </span>
+            <span className="font-medium text-slate-900">{formatCurrency(preview.electricityAmount)}</span>
+          </div>
+
+          <div className="flex justify-between items-center text-slate-600">
+            <span>
+              Tiền nước{" "}
+              <span className="text-xs text-slate-400">
+                ({waterUsage} m³ × {formatCurrency(preview.waterUnitPrice)})
+              </span>
+            </span>
+            <span className="font-medium text-slate-900">{formatCurrency(preview.waterAmount)}</span>
+          </div>
+
+          <div className="pt-1">
+            <div className="flex justify-between items-center text-slate-600">
+              <span className="font-medium text-slate-700">
+                Dịch vụ áp dụng {preview.lineItems.length > 0 ? `(${preview.lineItems.length})` : ""}
+              </span>
+              <span className="font-medium text-slate-900">{formatCurrency(preview.serviceAmount)}</span>
+            </div>
+            {preview.lineItems.length > 0 ? (
+              <div className="mt-1.5 space-y-1 rounded-lg bg-slate-50 p-2.5 text-xs border border-slate-100">
+                {preview.lineItems.map((item) => (
+                  <div key={item.serviceId} className="flex justify-between text-slate-600">
+                    <span>
+                      • {item.serviceName}{" "}
+                      <span className="text-slate-400">
+                        ({item.quantity} {item.unit} × {formatCurrency(item.unitPrice)})
+                      </span>
+                    </span>
+                    <span className="font-medium text-slate-800">{formatCurrency(item.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs text-slate-400 mt-0.5">Không áp dụng dịch vụ phát sinh</div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-between items-baseline border-t border-slate-200 pt-2.5">
+          <span className="font-bold text-slate-900">Tổng cộng</span>
+          <span className="text-xl font-extrabold text-blue-600 tracking-tight">
+            {formatCurrency(preview.totalAmount)}
+          </span>
         </div>
       </div>
     );
@@ -375,9 +418,15 @@ export default function AiPage() {
 
               {activeProposal && (
                 <div className="rounded-xl border border-primary/30 bg-primary-soft/40 p-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-                    <Icon name="receipt_long" className="h-4 w-4 text-primary" />
-                    Đề xuất: {ACTION_LABEL[activeProposal.actionType] ?? activeProposal.actionType}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+                      <Icon name="receipt_long" className="h-4 w-4 text-primary" />
+                      Đề xuất: {ACTION_LABEL[activeProposal.actionType] ?? activeProposal.actionType}
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-medium text-warning-text">
+                      <Icon name="clock" className="h-3 w-3" />
+                      Hiệu lực 15 phút
+                    </span>
                   </div>
                   <div className="mt-2.5">
                     <ProposalPreview proposal={activeProposal} />

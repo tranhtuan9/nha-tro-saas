@@ -21,6 +21,18 @@ const safeUserSelect = {
   createdAt: true,
 };
 
+const adminUserListSelect = {
+  ...safeUserSelect,
+  tenant: {
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      plan: { select: { id: true, name: true } },
+    },
+  },
+};
+
 function buildPagination(query: { page?: number; pageSize?: number }) {
   const page = query.page ?? 1;
   const pageSize = query.pageSize ?? 20;
@@ -53,10 +65,7 @@ export async function listUsers(query: PaginationQuery) {
     prismaSystem.user.count({ where }),
     prismaSystem.user.findMany({
       where,
-      select: {
-        ...safeUserSelect,
-        tenant: { select: { id: true, name: true, status: true } },
-      },
+      select: adminUserListSelect,
       orderBy: { createdAt: 'desc' },
       skip,
       take,
@@ -105,6 +114,7 @@ export async function listTenants(query: TenantListQuery) {
 
   const where: any = {};
   if (query.status) where.status = query.status as TenantStatus;
+  if (query.planId) where.planId = query.planId;
   if (query.search) {
     where.name = { contains: query.search, mode: 'insensitive' };
   }
@@ -135,6 +145,7 @@ export async function listTenants(query: TenantListQuery) {
     id: t.id,
     name: t.name,
     status: t.status,
+    planId: t.planId,
     subscriptionStart: t.subscriptionStart,
     subscriptionEnd: t.subscriptionEnd,
     subscriptionStatus: computeSubscriptionStatus(t.subscriptionEnd),

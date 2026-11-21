@@ -151,6 +151,7 @@ export default function AdminUsersPage() {
                 <th className="px-5 py-3.5">Họ Và Tên</th>
                 <th className="px-5 py-3.5">Email Đăng Nhập</th>
                 <th className="px-5 py-3.5">Vai Trò</th>
+                <th className="px-5 py-3.5">Thuộc Nhà Trọ & Gói</th>
                 <th className="px-5 py-3.5">Trạng Thái</th>
                 <th className="px-5 py-3.5 text-right">Hành Động</th>
               </tr>
@@ -158,7 +159,7 @@ export default function AdminUsersPage() {
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {list.isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center text-slate-400">
+                  <td colSpan={6} className="px-5 py-12 text-center text-slate-400">
                     <div className="inline-flex items-center gap-2">
                       <span className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                       <span>Đang tải danh sách người dùng...</span>
@@ -167,7 +168,7 @@ export default function AdminUsersPage() {
                 </tr>
               ) : list.rows.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-5 py-12 text-center text-slate-500">
                     <p className="font-medium text-slate-700">Không có người dùng phù hợp</p>
                     <p className="mt-1 text-xs text-slate-400">Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc.</p>
                   </td>
@@ -192,6 +193,20 @@ export default function AdminUsersPage() {
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${ROLE_BADGE[user.role] ?? "bg-slate-100 text-slate-800"}`}>
                           {ROLE_LABEL[user.role] ?? user.role}
                         </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        {user.tenant ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-800 text-xs sm:text-sm">
+                              {user.tenant.name}
+                            </span>
+                            <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/80">
+                              Gói: {user.tenant.plan?.name ?? "Cơ bản"}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">Hệ thống</span>
+                        )}
                       </td>
                       <td className="px-5 py-4">
                         <Badge tone={STATUS_TONE[user.status]} dot>

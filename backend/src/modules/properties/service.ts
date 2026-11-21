@@ -80,9 +80,9 @@ export async function createProperty(context: TenantContext, input: CreateProper
       where: { id: context.tenantId },
       include: { plan: true },
     });
-    if (!tenant) throw ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy Tenant');
+    if (!tenant) throw ApiError.notFound('TENANT_NOT_FOUND', 'Không tìm thấy nhà trọ');
     if (!tenant.plan) {
-      throw ApiError.notFound('PLAN_NOT_FOUND', 'Không tìm thấy gói dịch vụ của Tenant');
+      throw ApiError.notFound('PLAN_NOT_FOUND', 'Không tìm thấy gói dịch vụ của nhà trọ');
     }
 
     const activeCount = await tx.property.count({

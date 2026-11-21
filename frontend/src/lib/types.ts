@@ -1,4 +1,4 @@
-﻿
+
 export type SupportType = "COMPLAINT" | "REPAIR" | "OTHER";
 export type SupportStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED";
 export interface SupportRequestItem {
@@ -79,6 +79,15 @@ export interface AdminUser {
   status: string;
   tenantId: string | null;
   createdAt: string;
+  tenant?: {
+    id: string;
+    name: string;
+    status?: string;
+    plan?: {
+      id: string;
+      name: string;
+    } | null;
+  } | null;
 }
 
 /**
@@ -342,6 +351,8 @@ export interface InvoicePreview {
   effectiveStatus: InvoiceStatus;
   electricityUnitPrice: string;
   waterUnitPrice: string;
+  electricityUsage?: string;
+  waterUsage?: string;
   rentAmount: string;
   electricityAmount: string;
   waterAmount: string;

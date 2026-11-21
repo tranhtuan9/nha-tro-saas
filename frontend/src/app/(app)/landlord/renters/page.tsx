@@ -816,9 +816,9 @@ export default function RentersPage() {
           tone="success"
         />
         <KpiCard
-          label="Sắp hết hạn (< 30 ngày)"
+          label="Sắp hết hạn"
           value={activeContracts.isLoading ? "…" : expiringSoon}
-          hint="Cần gia hạn hoặc kết thúc"
+          hint="Trong vòng 30 ngày"
           tone={expiringSoon > 0 ? "warning" : "default"}
         />
         <KpiCard
@@ -970,7 +970,7 @@ export default function RentersPage() {
           <>
             <p>
               Gửi lại email mời đặt mật khẩu tới{" "}
-              <span className="font-semibold">{inviteTarget?.email}</span>? Token mời cũ sẽ bị vô hiệu
+              <span className="font-semibold">{inviteTarget?.email}</span>? Liên kết mời cũ sẽ bị vô hiệu
               hóa.
             </p>
             {inviteError && (
