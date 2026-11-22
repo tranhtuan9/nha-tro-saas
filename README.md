@@ -41,7 +41,7 @@ Trước khi khởi chạy dự án, Thầy/Cô và người đánh giá vui lò
 
 ---
 
-## 4. Hướng dẫn khởi động nhanh (Từng bước chi tiết)
+## 4. Hướng dẫn chạy dự án (Từng bước chi tiết)
 
 Hệ thống được thiết kế vận hành với 3 thành phần độc lập:
 - **Cơ sở dữ liệu:** PostgreSQL 16 (chạy container Docker tại cổng `5432`).
@@ -179,21 +179,6 @@ Khi khách thuê quét mã VietQR thật qua ứng dụng ngân hàng, máy ch�
    - Đăng nhập khách thuê `tranthanhbinh@gmail.com` / `123456` tại `http://localhost:3000`.
    - Vào mục **Hóa đơn** $\rightarrow$ Bấm **Thanh toán ngay** $\rightarrow$ Quét mã VietQR chuyển khoản (số tiền thử nghiệm 2.000đ).
    - Hóa đơn tự động chuyển sang màu xanh **Đã thanh toán** và gửi thông báo chuông đến Chủ trọ ngay lập tức mà không cần tải lại trang!
-
----
-
-### Tùy chọn nâng cao: Khởi chạy trọn gói qua Docker Compose (Demo độc lập)
-
-Đối với môi trường thử nghiệm hoặc máy chủ triển khai không cài đặt sẵn môi trường Node.js cục bộ, dự án cung cấp tệp cấu hình mở rộng `docker-compose.full.yml` điều phối tự động cả 3 dịch vụ (**PostgreSQL 16**, **Backend Express**, **Frontend Next.js**):
-
-```bash
-# Khởi chạy toàn bộ 3 dịch vụ bằng một lệnh duy nhất:
-docker compose -f docker-compose.full.yml up --build -d
-```
-
-> [!NOTE]
-> - **Nguyên tắc bảo mật:** Toàn bộ các khóa cấu hình bí mật (Google Gemini API, payOS, JWT Secret) tuyệt đối không nhúng cứng vào Docker Image mà được nạp an toàn từ tệp `backend/.env` tại thời điểm khởi chạy (runtime).
-> - **Khuyến nghị phát triển:** Phương thức khởi chạy từng bước với Node.js ở trên là lựa chọn tối ưu khi lập trình và chấm thi thực nghiệm nhờ khả năng phản hồi tức thì và tính năng Hot-Reload trực tiếp.
 
 ---
 

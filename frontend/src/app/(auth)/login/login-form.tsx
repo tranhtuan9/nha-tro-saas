@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getApiErrorMessage } from "@/lib/api";
 import { isValidEmail } from "@/lib/format";
 import { getHomePathForRole } from "@/lib/navigation";
+import { FullScreenSpinner } from "@/components/guards";
 
 export function LoginForm() {
   const router = useRouter();
@@ -40,6 +41,10 @@ export function LoginForm() {
       router.replace(nextPath ?? getHomePathForRole(user.role));
     }
   }, [token, user, nextPath, router]);
+
+  if (token) {
+    return <FullScreenSpinner />;
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

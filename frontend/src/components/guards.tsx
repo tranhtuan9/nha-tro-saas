@@ -24,7 +24,14 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!token) {
+    // Chỉ điều hướng về /login khi thực sự không có token trong cả context lẫn localStorage
+    const stored =
+      typeof window !== "undefined"
+        ? localStorage.getItem("nha_tro_token") ?? sessionStorage.getItem("nha_tro_token")
+        : null;
+    const currentToken = token ?? stored;
+
+    if (!currentToken) {
       const next = pathname && pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : "";
       router.replace(`/login${next}`);
     }

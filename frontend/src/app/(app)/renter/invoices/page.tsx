@@ -78,7 +78,7 @@ function InvoiceDetailPanel({ invoice, onPay, paying }: InvoiceDetailPanelProps)
   const { data, isLoading } = useSWR(
     ["invoiceDetail", invoice.id],
     () => apiFetcher<InvoiceDetail>(`/invoices/${invoice.id}`).then((res) => res.data),
-    { revalidateOnFocus: false },
+    { refreshInterval: 4000, revalidateOnFocus: true },
   );
 
   const payable =
@@ -181,8 +181,16 @@ export default function RenterInvoicesPage() {
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const allInvoices = usePagedList<InvoiceListItem>("/invoices", { pageSize: 100 });
-  const payments = usePagedList<PaymentListItem>("/payments", { pageSize: 20 });
+  const allInvoices = usePagedList<InvoiceListItem>(
+    "/invoices",
+    { pageSize: 100 },
+    { refreshInterval: 4000, revalidateOnFocus: true },
+  );
+  const payments = usePagedList<PaymentListItem>(
+    "/payments",
+    { pageSize: 20 },
+    { refreshInterval: 4000, revalidateOnFocus: true },
+  );
 
   // Sắp xếp: mới nhất lên đầu
   const sortedInvoices = useMemo(

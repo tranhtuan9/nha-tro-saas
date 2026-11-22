@@ -62,7 +62,7 @@ export function NotificationBell({ href }: { href: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   const unread = useSWR(READ_ALL_KEY, () => getUnreadCount(), {
-    refreshInterval: 60_000,
+    refreshInterval: 10_000,
     revalidateOnFocus: true,
   });
   const list = useSWR(

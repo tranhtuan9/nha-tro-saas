@@ -48,13 +48,26 @@ function normalizePageResult<T>(body: unknown): PageResult<T> | null {
   return null;
 }
 
-export function usePagedList<T>(path: string, query: ListQuery = {}): PagedList<T> {
+export interface PagedListOptions {
+  revalidateOnFocus?: boolean;
+  refreshInterval?: number;
+}
+
+export function usePagedList<T>(
+  path: string,
+  query: ListQuery = {},
+  options?: PagedListOptions,
+): PagedList<T> {
   const key = listKey(path, query);
   const url = key[1];
   const { data, error, isLoading, mutate } = useSWR(
     key,
     () => apiFetcher<unknown>(url),
-    { revalidateOnFocus: false, keepPreviousData: true },
+    {
+      revalidateOnFocus: options?.revalidateOnFocus ?? true,
+      refreshInterval: options?.refreshInterval ?? 0,
+      keepPreviousData: true,
+    },
   );
 
   const page = normalizePageResult<T>(data);

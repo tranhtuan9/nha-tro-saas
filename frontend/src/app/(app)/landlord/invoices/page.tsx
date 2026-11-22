@@ -530,7 +530,10 @@ export default function InvoicesPage() {
     status: status || undefined,
     propertyId: propertyId || undefined,
   };
-  const invoicesList = usePagedList<InvoiceListItem>("/invoices", listQuery);
+  const invoicesList = usePagedList<InvoiceListItem>("/invoices", listQuery, {
+    refreshInterval: 4000,
+    revalidateOnFocus: true,
+  });
 
   const properties = usePagedList<Property>("/properties", { pageSize: 100 });
   const summary = useSWR(
@@ -539,7 +542,7 @@ export default function InvoicesPage() {
       apiFetcher<InvoiceSummary>(`/invoices/summary${month ? `?month=${month}` : ""}`).then(
         (res) => res.data,
       ),
-    { revalidateOnFocus: false },
+    { refreshInterval: 4000, revalidateOnFocus: true },
   );
 
   const [createOpen, setCreateOpen] = useState(false);

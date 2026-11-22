@@ -15,13 +15,26 @@ import { usePagedList } from "@/lib/use-paged-list";
 import type { InvoiceListItem, InvoiceSummary, RoomListItem, SupportRequestItem } from "@/lib/types";
 
 export default function LandlordOverviewPage() {
-  const invoices = usePagedList<InvoiceListItem>("/invoices", { pageSize: 50 });
-  const support = usePagedList<SupportRequestItem>("/support-requests", { pageSize: 50 });
-  const rooms = usePagedList<RoomListItem>("/rooms", { pageSize: 100 });
+  const invoices = usePagedList<InvoiceListItem>(
+    "/invoices",
+    { pageSize: 50 },
+    { refreshInterval: 8000, revalidateOnFocus: true },
+  );
+  const support = usePagedList<SupportRequestItem>(
+    "/support-requests",
+    { pageSize: 50 },
+    { refreshInterval: 8000, revalidateOnFocus: true },
+  );
+  const rooms = usePagedList<RoomListItem>(
+    "/rooms",
+    { pageSize: 100 },
+    { refreshInterval: 8000, revalidateOnFocus: true },
+  );
 
   const month = currentBillingMonth();
   const summary = useSWR<InvoiceSummary>(["invoice-summary", month], () => getInvoiceSummary(month), {
-    revalidateOnFocus: false,
+    refreshInterval: 8000,
+    revalidateOnFocus: true,
   });
 
   const totalRooms = rooms.pagination?.total ?? rooms.rows.length;

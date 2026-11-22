@@ -84,9 +84,11 @@ export function NotificationsView() {
   const params = { page, pageSize: PAGE_SIZE, ...(tab === "unread" ? { isRead: false } : {}) };
   const list = useSWR(["notifications", "page", tab, page], () => getNotifications(params), {
     keepPreviousData: true,
-    revalidateOnFocus: false,
+    refreshInterval: 8_000,
+    revalidateOnFocus: true,
   });
   const unread = useSWR("notifications:unread-count", () => getUnreadCount(), {
+    refreshInterval: 8_000,
     revalidateOnFocus: true,
   });
 

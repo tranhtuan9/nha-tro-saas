@@ -37,7 +37,11 @@ export default function RenterFeedbackPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
-  const list = usePagedList<SupportRequestItem>("/support-requests", { page, pageSize: 20 });
+  const list = usePagedList<SupportRequestItem>(
+    "/support-requests",
+    { page, pageSize: 20 },
+    { refreshInterval: 4000, revalidateOnFocus: true },
+  );
 
   const listError = list.error ? getApiErrorMessage(list.error) : null;
   const totalPages = list.pagination

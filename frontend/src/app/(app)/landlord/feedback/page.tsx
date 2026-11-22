@@ -140,10 +140,14 @@ export default function LandlordFeedbackPage() {
   const [tab, setTab] = useState<"all" | "OPEN" | "IN_PROGRESS" | "RESOLVED">("OPEN");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const list = usePagedList<SupportRequestItem>("/support-requests", {
-    pageSize: 50,
-    status: tab === "all" ? undefined : tab,
-  });
+  const list = usePagedList<SupportRequestItem>(
+    "/support-requests",
+    {
+      pageSize: 50,
+      status: tab === "all" ? undefined : tab,
+    },
+    { refreshInterval: 4000, revalidateOnFocus: true },
+  );
 
   const listError = list.error ? getApiErrorMessage(list.error) : null;
   const rows = useMemo(() => list.rows, [list.rows]);
@@ -158,8 +162,10 @@ export default function LandlordFeedbackPage() {
     error: detailError,
     isLoading: loadingDetail,
     mutate: reloadDetail,
-  } = useSWR(activeId ? ["support-request-detail", activeId] : null, () =>
-    getSupportRequest(activeId!)
+  } = useSWR(
+    activeId ? ["support-request-detail", activeId] : null,
+    () => getSupportRequest(activeId!),
+    { refreshInterval: 4000, revalidateOnFocus: true },
   );
 
   const detailErrorMessage = detailError ? getApiErrorMessage(detailError) : null;
@@ -259,7 +265,7 @@ export default function LandlordFeedbackPage() {
               </div>
             ) : (
               <FeedbackDetailForm
-                key={detail.id}
+                key={`${detail.id}-${detail.status}-${detail.updatedAt}`}
                 detail={detail}
                 onUpdated={handleUpdated}
               />
