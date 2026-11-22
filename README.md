@@ -28,85 +28,112 @@ Hệ thống Quản lý Nhà trọ SaaS được thiết kế theo mô hình ki�
 
 ---
 
-## 3. Yêu cầu môi trường cài đặt
+## 3. Yêu cầu môi trường cài đặt (Prerequisites)
 
-Để chạy thử nghiệm hệ thống, máy tính cần cài đặt sẵn:
-- **Node.js**: Phiên bản `18.x` hoặc `20.x` trở lên ([Tải tại đây](https://nodejs.org/)).
-- **Docker Desktop**: Đang khởi chạy để chạy PostgreSQL tự động ([Tải tại đây](https://www.docker.com/products/docker-desktop/)).
-- **Git**: Để quản lý mã nguồn.
+Trước khi khởi chạy dự án, Thầy/Cô và người đánh giá vui lòng cài đặt các phần mềm nền tảng sau trên máy tính (hỗ trợ Windows, macOS và Linux):
+
+| Phần mềm | Phiên bản yêu cầu | Hướng dẫn tải & Cài đặt | Cách kiểm tra trên Terminal |
+|---|:---:|---|---|
+| **Node.js** | `v20.x` hoặc `v22.x` (LTS)<br>*(Tối thiểu `v18.18+`)* | Tải bản cài đặt tại [nodejs.org](https://nodejs.org/). Cài đặt kèm theo trình quản lý gói `npm`. | `node -v`<br>`npm -v` |
+| **Docker Desktop** | `v4.25+`<br>*(Docker Compose `v2.20+`)* | Tải tại [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/). Bắt buộc phải **bật ứng dụng Docker Desktop** trước khi chạy hệ thống. | `docker -v`<br>`docker compose version` |
+| **Git** | `v2.40+` | Tải tại [git-scm.com](https://git-scm.com/) để tải mã nguồn dự án. | `git -v` |
+| **ngrok** *(Tùy chọn)* | `v3.8+` | Dành cho việc thử nghiệm quét mã VietQR thật qua cổng payOS từ điện thoại: tải tại [ngrok.com/download](https://ngrok.com/download) (hoặc chạy lệnh Windows: `winget install ngrok`). | `ngrok -v` |
 
 ---
 
-## 4. Hướng dẫn khởi động nhanh (Từng bước)
+## 4. Hướng dẫn khởi động nhanh (Từng bước chi tiết)
+
+Hệ thống được thiết kế vận hành với 3 thành phần độc lập:
+- **Cơ sở dữ liệu:** PostgreSQL 16 (chạy container Docker tại cổng `5432`).
+- **Máy chủ Backend API:** Node.js Express (chạy tại cổng `4000`).
+- **Giao diện Frontend:** Next.js (chạy tại cổng `3000`).
+
+---
 
 ### Bước 1: Khởi động cơ sở dữ liệu PostgreSQL (Docker)
 
-Mở terminal tại thư mục gốc của dự án và chạy lệnh:
-
-```bash
-docker compose up -d
-```
-
-Lệnh trên sẽ tự động khởi tạo container PostgreSQL 16 tại cổng `5432`, đồng thời kích hoạt script phân quyền 3 role cơ sở dữ liệu (`nha_tro_owner`, `app_user`, `app_system`).
+1. Mở cửa sổ Terminal (PowerShell hoặc CMD) tại **thư mục gốc của dự án** (`nha-tro-saas`).
+2. Khởi chạy container cơ sở dữ liệu:
+   ```bash
+   docker compose up -d
+   ```
+3. **Dấu hiệu thành công:** Terminal hiển thị `Container nha_tro_db Started` (trạng thái `healthy` tại cổng `5432`). Hệ thống đã tự động kích hoạt script phân quyền 3 role bảo mật CSDL (`nha_tro_owner`, `app_user`, `app_system`).
 
 ---
 
-### Bước 2: Cài đặt và nạp dữ liệu mẫu cho Backend
+### Bước 2: Cài đặt và khởi chạy máy chủ Backend (Port 4000)
 
-1. Mở terminal mới, di chuyển vào thư mục `backend`:
+1. Mở một cửa sổ Terminal mới (Terminal 1), di chuyển vào thư mục `backend`:
    ```bash
    cd backend
    ```
 
-2. Tạo file cấu hình môi trường `.env` từ mẫu có sẵn:
+2. Tạo tệp cấu hình môi trường `.env` từ mẫu có sẵn:
    - Trên Windows (PowerShell):
      ```powershell
      Copy-Item .env.example .env
      ```
-   - Trên Linux / macOS:
+   - Trên Windows (CMD):
+     ```cmd
+     copy .env.example .env
+     ```
+   - Trên macOS / Linux:
      ```bash
      cp .env.example .env
      ```
-   *(File `.env.example` đã được cấu hình sẵn các thông số mặc định tương thích hoàn toàn với Docker).*
 
-3. Cài đặt các gói phụ thuộc:
+   > [!NOTE]
+   > **Lưu ý cấu hình tệp `backend/.env`:**
+   > - Tệp `.env.example` chỉ cung cấp khung tên biến và các thông số kết nối CSDL mặc định (`change_me`) khớp với cấu hình trong `docker-compose.yml`. Các khóa bí mật bên thứ ba được để trống nhằm bảo mật.
+   > - **Để chạy các nghiệp vụ quản lý cơ bản:** Giữ nguyên các giá trị mặc định của file `.env` vừa sao chép là có thể khởi chạy và nạp dữ liệu mẫu bình thường.
+   > - **Để kích hoạt Trợ lý AI (Google Gemini):** Mở file `.env` và điền `GEMINI_API_KEY` (đăng ký lấy khóa miễn phí tại [Google AI Studio](https://aistudio.google.com/)).
+   > - **Để kích hoạt cổng thanh toán online (payOS):** Điền bộ 3 khóa `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY` (lấy tại trang quản trị [my.payos.vn](https://my.payos.vn/)) như hướng dẫn ở Bước 4.
+   > - **Để kiểm thử gửi email:** Điền `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` (tài khoản Gmail có tạo Mật khẩu ứng dụng - App Password).
+
+3. Cài đặt các thư viện phụ thuộc:
    ```bash
    npm install
    ```
 
-4. Đồng bộ cấu trúc CSDL và nạp dữ liệu mẫu (Seed Data):
+4. Tạo cấu trúc bảng CSDL và nạp dữ liệu mẫu hoàn chỉnh:
    ```bash
    npm run prisma:migrate
    npm run seed:demo
    ```
-   *(Lệnh `seed:demo` sẽ tạo sẵn các nhà trọ, danh sách phòng, hợp đồng, chỉ số điện nước, hóa đơn và các tài khoản thử nghiệm đầy đủ).*
+   *(Lệnh `seed:demo` sẽ tạo sẵn các nhà trọ, danh sách phòng, hợp đồng, bảng giá dịch vụ, chỉ số điện nước, hóa đơn và các tài khoản thử nghiệm theo kịch bản chấm thi).*
 
-5. Khởi chạy máy chủ Backend:
+5. Khởi chạy Backend ở chế độ phát triển:
    ```bash
    npm run dev
    ```
-   Backend sẽ hoạt động tại địa chỉ: `http://localhost:4000` (Kiểm tra trạng thái tại: `http://localhost:4000/api/health`).
+   - **Dấu hiệu thành công:** Terminal hiển thị `Server is running on port 4000`.
+   - Có thể kiểm tra bằng trình duyệt tại: `http://localhost:4000/api/health` (trả về `{"status":"ok"}`).
+   - *Giữ nguyên cửa sổ Terminal này hoạt động.*
 
 ---
 
-### Bước 3: Cài đặt và khởi chạy giao diện Frontend
+### Bước 3: Cài đặt và khởi chạy giao diện Frontend (Port 3000)
 
-1. Mở một cửa sổ terminal mới, di chuyển vào thư mục `frontend`:
+1. Mở thêm một cửa sổ Terminal mới (Terminal 2), di chuyển vào thư mục `frontend`:
    ```bash
    cd frontend
    ```
 
-2. Tạo file cấu hình môi trường `.env.local`:
+2. Tạo tệp cấu hình môi trường `.env.local`:
    - Trên Windows (PowerShell):
      ```powershell
      Copy-Item .env.local.example .env.local
      ```
-   - Trên Linux / macOS:
+   - Trên Windows (CMD):
+     ```cmd
+     copy .env.local.example .env.local
+     ```
+   - Trên macOS / Linux:
      ```bash
      cp .env.local.example .env.local
      ```
 
-3. Cài đặt các gói phụ thuộc:
+3. Cài đặt các thư viện phụ thuộc:
    ```bash
    npm install
    ```
@@ -115,42 +142,43 @@ Lệnh trên sẽ tự động khởi tạo container PostgreSQL 16 tại cổng
    ```bash
    npm run dev
    ```
-   Giao diện web sẽ sẵn sàng tại địa chỉ: **`http://localhost:3000`**.
-
-   👉 **Đăng nhập trải nghiệm ngay:**
-   - **Chủ trọ (Nhiều dữ liệu nhất):** `nguyenvanbinh@gmail.com` | Mật khẩu: `123456`
-   - **Khách thuê (Demo quét mã payOS):** `tranthanhbinh@gmail.com` | Mật khẩu: `123456`
-   - **Quản trị viên SaaS (Admin):** `adminnhatro@gmail.com` | Mật khẩu: `123456`
-   *(Xem danh sách đầy đủ tất cả các vai trò tại **Mục 5** bên dưới).*
+   - **Dấu hiệu thành công:** Terminal hiển thị `Ready in ...ms on http://localhost:3000`.
+   - Mở trình duyệt web truy cập địa chỉ: **`http://localhost:3000`** để bắt đầu trải nghiệm.
+   - *Giữ nguyên cửa sổ Terminal này hoạt động.*
 
 ---
 
-### Bước 4: Cấu hình ngrok nhận Webhook thanh toán payOS (Tùy chọn kiểm thử thanh toán online)
+### Bước 4: Cấu hình ngrok nhận Webhook payOS (Tùy chọn kiểm thử thanh toán online)
 
-Do cổng thanh toán payOS gửi kết quả giao dịch qua Webhook từ Internet về máy chủ, khi chạy thử nghiệm trên máy tính cá nhân (`localhost:4000`), cần mở một đường hầm (tunnel) qua ngrok để máy chủ tiếp nhận Webhook và tự động gạch nợ hóa đơn:
+Khi khách thuê quét mã VietQR thật qua ứng dụng ngân hàng, máy chủ payOS sẽ gửi thông báo Webhook từ Internet về máy chủ cục bộ (`localhost:4000`) để tự động gạch nợ hóa đơn.
 
-1. **Cài đặt ngrok và kích hoạt:**
-   - Tải ngrok từ [ngrok.com/download](https://ngrok.com/download) và cấu hình mã xác thực Authtoken theo tài khoản của bạn:
+1. **Kích hoạt tài khoản ngrok (Chỉ làm lần đầu):**
+   - Đăng ký tài khoản miễn phí tại [dashboard.ngrok.com](https://dashboard.ngrok.com/) và lấy mã Authtoken.
+   - Chạy lệnh kích hoạt trên terminal (chạy ở bất kỳ đâu):
      ```bash
      ngrok config add-authtoken <TOKEN_CỦA_BẠN>
      ```
 
-2. **Lấy tên miền tĩnh miễn phí (Cố định vĩnh viễn):**
-   - Đăng nhập trang quản trị ngrok: [dashboard.ngrok.com/cloud-edge/domains](https://dashboard.ngrok.com/cloud-edge/domains).
-   - ngrok tặng sẵn **1 Static Domain miễn phí** cho mỗi tài khoản (ví dụ: `your-domain.ngrok-free.app` hoặc `your-domain.ngrok-free.dev`). Bấm **Copy** tên miền này.
-   - Khởi chạy ngrok với tên miền cố định:
+2. **Lấy Static Domain miễn phí:**
+   - Truy cập [dashboard.ngrok.com/cloud-edge/domains](https://dashboard.ngrok.com/cloud-edge/domains) để copy 1 Static Domain được tặng miễn phí vĩnh viễn (ví dụ: `your-domain.ngrok-free.app` hoặc `your-domain.ngrok-free.dev`).
+
+3. **Khởi chạy ngrok (Chọn 1 trong 2 cách):**
+   - **Cách 1 (Nhanh nhất nếu có file bat):** Nhấp đúp chuột vào file `start-ngrok.bat` trong thư mục `C:\DISK D\ngrok` (hoặc vị trí bạn lưu ngrok).
+   - **Cách 2 (Mở Terminal thứ 3):** Mở một cửa sổ Terminal mới tại bất kỳ thư mục nào và chạy:
      ```bash
      ngrok http --domain=your-domain.ngrok-free.app 4000
      ```
-     *(Nhờ tên miền cố định, URL không bao giờ bị thay đổi khi tắt đi bật lại, chỉ cần cấu hình lên payOS đúng một lần duy nhất).*
+   - *Giữ nguyên cửa sổ ngrok chạy ngầm trong suốt quá trình demo thanh toán.*
 
-3. **Đăng ký Webhook URL trên payOS:**
-   - Truy cập trang quản trị [my.payos.vn](https://my.payos.vn/) $\rightarrow$ Chọn Kênh thanh toán $\rightarrow$ **Cài đặt Webhook**.
-   - Điền đường dẫn Webhook chuẩn của hệ thống:
-     ```
-     https://your-domain.ngrok-free.app/api/webhooks/payos
-     ```
-   - Bấm **Xác nhận**. *(Hoặc khai báo biến `PAYOS_WEBHOOK_URL` trong file `backend/.env` rồi chạy lệnh `npm run payos:confirm-webhook` tại thư mục `backend` để tự động xác nhận qua SDK)*.
+4. **Đăng ký Webhook URL trên cổng payOS:**
+   - Vào [my.payos.vn](https://my.payos.vn/) $\rightarrow$ Chọn Kênh thanh toán $\rightarrow$ **Cài đặt Webhook**.
+   - Nhập đường dẫn: `https://your-domain.ngrok-free.app/api/webhooks/payos` và bấm **Xác nhận**.
+   - *(Hoặc bạn mở file `backend/.env`, điền `PAYOS_WEBHOOK_URL` tương ứng, rồi mở terminal tại `backend` chạy lệnh: `npm run payos:confirm-webhook` để hệ thống tự động xác nhận qua SDK).*
+
+5. **Trải nghiệm gạch nợ tự động:**
+   - Đăng nhập khách thuê `tranthanhbinh@gmail.com` / `123456` tại `http://localhost:3000`.
+   - Vào mục **Hóa đơn** $\rightarrow$ Bấm **Thanh toán ngay** $\rightarrow$ Quét mã VietQR chuyển khoản (số tiền thử nghiệm 2.000đ).
+   - Hóa đơn tự động chuyển sang màu xanh **Đã thanh toán** và gửi thông báo chuông đến Chủ trọ ngay lập tức mà không cần tải lại trang!
 
 ---
 
@@ -189,20 +217,20 @@ Thầy/Cô có thể đăng nhập và trải nghiệm các luồng nghiệp v�
 
 ### Kịch bản 1: Nghiệp vụ Chủ nhà trọ & Trợ lý AI thông minh
 - **Bước 1:** Đăng nhập với tài khoản `nguyenvanbinh@gmail.com` / mật khẩu `123456`.
-- **Bước 2 (Trang tổng quan):** Quan sát các chỉ số thống kê (KPIs): tổng doanh thu trong tháng, tỷ lệ lấp đầy phòng, số hóa đơn chưa thanh toán.
+- **Bước 2 (Trang tổng quan):** Quan sát các chỉ số thống kê (KPIs): tổng doanh thu trong kỳ, tỷ lệ lấp đầy phòng, số hóa đơn chưa thanh toán và các thông báo chuông mới nhất.
 - **Bước 3 (Quản lý phòng & Hợp đồng):**
-  - Vào mục **Nhà trọ & Phòng**: Xem danh sách phòng theo từng cơ sở, lọc phòng theo trạng thái (*Đang thuê, Trống, Đang bảo trì*).
-  - Vào mục **Hợp đồng**: Xem danh sách hợp đồng, thời hạn thuê, tiền đặt cọc.
-- **Bước 4 (Điện nước & Hóa đơn):**
-  - Vào mục **Chỉ số điện nước**: Xem lịch sử ghi chỉ số theo từng tháng.
-  - Vào mục **Hóa đơn**: Lập hóa đơn mới, hệ thống tự động tính tiền điện, nước dựa trên mức tiêu thụ và đơn giá dịch vụ đã cấu hình.
-- **Bước 5 (Trải nghiệm Trợ lý AI):**
-  - Bấm vào biểu tượng **Trợ lý AI** ở góc màn hình.
+  - Vào mục **Nhà trọ & Phòng**: Xem danh sách phòng theo từng cơ sở (Bình Minh Cơ sở 1 và Cơ sở 2), lọc phòng theo trạng thái (*Đang thuê, Trống, Đang bảo trì*).
+  - Vào mục **Người thuê & Hợp đồng**: Xem danh sách hợp đồng đang hiệu lực, thời hạn thuê, thông tin khách thuê và tiền đặt cọc.
+- **Bước 4 (Ghi điện nước & Lập hóa đơn mẫu):**
+  - Vào mục **Điện nước & Dịch vụ** $\rightarrow$ **Chỉ số điện nước**: Chọn phòng **P104** (đang để trống chỉ số kỳ 11/2026 để thử nghiệm), bấm **Ghi chỉ số** (Ví dụ: Điện mới `215`, Nước mới `42`).
+  - Vào mục **Hóa đơn**: Bấm **+ Lập hóa đơn** chọn phòng **P104** (Kỳ 11/2026), hệ thống tự động kế thừa chỉ số vừa ghi và bảng giá các dịch vụ cố định (Wifi, rác, tiện ích) từ hợp đồng mà không cần gõ lại.
+- **Bước 5 (Trải nghiệm Trợ lý AI thông minh):**
+  - Bấm vào mục hoặc biểu tượng **Trợ lý AI** ở thanh điều hướng bên trái.
   - Thử nghiệm các câu hỏi bằng tiếng Việt:
-    - *Tra cứu phòng trống:* `"Còn những phòng nào đang trống?"` $\rightarrow$ AI tự động truy vấn CSDL và liệt kê danh sách phòng trống kèm giá thuê.
-    - *Tra cứu doanh thu:* `"Doanh thu tháng 10/2026 là bao nhiêu?"` $\rightarrow$ AI tra cứu và báo cáo doanh thu từ các hóa đơn đã thanh toán.
-    - *Cơ chế hỏi lại khi thiếu thông tin:* Nhập `"Tạo hóa đơn cho phòng P102"` $\rightarrow$ AI nhận diện thiếu kỳ thanh toán và lịch sự hỏi lại người dùng thay vì tự ý suy đoán kỳ quá khứ.
-    - *Đề xuất nghiệp vụ có xác nhận (Human-in-the-Loop):* Nhập `"Chuyển phòng P105 sang bảo trì"` $\rightarrow$ AI tạo đề xuất và yêu cầu chủ nhà bấm nút **Xác nhận** trên giao diện trước khi thực thi cập nhật vào CSDL.
+    - *Tra cứu phòng trống:* `"Còn những phòng nào đang trống?"` $\rightarrow$ AI tự động gọi hàm `getVacantRooms` và liệt kê danh sách phòng trống kèm giá thuê.
+    - *Tra cứu doanh thu:* `"Doanh thu tháng 10/2026 là bao nhiêu?"` $\rightarrow$ AI gọi hàm `getMonthlyRevenue` và báo cáo doanh thu từ các hóa đơn đã thanh toán.
+    - *Lập hóa đơn qua AI (Human-in-the-Loop):* Nhập `"Lập hóa đơn cho phòng P102 kỳ 11/2026"` $\rightarrow$ AI phân tích chỉ số điện nước có sẵn của phòng P102 và xuất thẻ **Đề xuất lập hóa đơn**. Chủ nhà chỉ cần bấm nút **Xác nhận** trên màn hình để hệ thống chính thức phát hành hóa đơn.
+    - *Đổi trạng thái phòng an toàn:* Nhập `"Chuyển phòng P105 sang bảo trì"` $\rightarrow$ AI tạo đề xuất `setRoomStatus`, yêu cầu xác nhận trước khi thực hiện cập nhật CSDL.
 
 ---
 
