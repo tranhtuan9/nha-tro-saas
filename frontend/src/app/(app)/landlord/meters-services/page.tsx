@@ -249,13 +249,7 @@ export default function MetersServicesPage() {
     [allProperties.rows],
   );
 
-  const [propertyOverride, setPropertyOverride] = useState<string | null>(null);
-  const selectedPropertyId = useMemo(() => {
-    if (propertyOverride && activeProperties.some((property) => property.id === propertyOverride)) {
-      return propertyOverride;
-    }
-    return activeProperties[0]?.id ?? "";
-  }, [propertyOverride, activeProperties]);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>("");
   const [billingMonth, setBillingMonth] = useState(() => currentBillingMonth());
   const [drafts, setDrafts] = useState<DraftMap>({});
   const [entryFilter, setEntryFilter] = useState("");
@@ -270,7 +264,7 @@ export default function MetersServicesPage() {
   }
 
   function changeProperty(value: string) {
-    setPropertyOverride(value || null);
+    setSelectedPropertyId(value);
     resetSheetScope();
   }
 
@@ -769,17 +763,17 @@ export default function MetersServicesPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <KpiCard
               label="Điện tiêu thụ kỳ"
-              value={sheetLoading ? "…" : `${formatIndex(usageSummary.electricity)} kWh`}
+              value={!selectedPropertyId ? "—" : sheetLoading ? "…" : `${formatIndex(usageSummary.electricity)} kWh`}
               hint="Tổng tiêu thụ toàn cơ sở"
             />
             <KpiCard
               label="Nước tiêu thụ kỳ"
-              value={sheetLoading ? "…" : `${formatIndex(usageSummary.water)} m³`}
+              value={!selectedPropertyId ? "—" : sheetLoading ? "…" : `${formatIndex(usageSummary.water)} m³`}
               hint="Tổng tiêu thụ toàn cơ sở"
             />
             <KpiCard
               label="Phòng đã ghi"
-              value={sheetLoading ? "…" : `${enteredCount}/${sheetRows.length}`}
+              value={!selectedPropertyId ? "—" : sheetLoading ? "…" : `${enteredCount}/${sheetRows.length}`}
               hint="Phòng có chỉ số trong kỳ"
               tone={enteredCount === sheetRows.length && sheetRows.length > 0 ? "success" : "default"}
             />
@@ -869,7 +863,7 @@ export default function MetersServicesPage() {
             emptyDescription={
               selectedPropertyId
                 ? "Chỉ các phòng đang có hợp đồng hiệu lực mới hiển thị trong bảng nhập chỉ số."
-                : "Chưa có nhà trọ hoạt động để nhập chỉ số điện nước."
+                : "Vui lòng chọn một nhà trọ ở thanh lọc phía trên để xem và ghi chỉ số điện nước."
             }
             emptyIcon={<Icon name="bolt" className="h-5 w-5" />}
             footer={

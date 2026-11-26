@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import {
   aiChat,
   confirmProposal,
@@ -258,7 +259,10 @@ function ProposalPreview({ proposal }: { proposal: AiProposal }) {
 }
 
 export default function AiPage() {
+  const { user } = useAuth();
+  const storageKey = user?.id ? `nha_tro_ai_history_${user.id}` : "nha_tro_ai_history";
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadedFromStorage, setIsLoadedFromStorage] = useState(false);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -271,6 +275,45 @@ export default function AiPage() {
   const [now, setNow] = useState(() => Date.now());
   const [proposalPage, setProposalPage] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      }
+    } catch {
+      // Bỏ qua lỗi đọc localStorage
+    } finally {
+      setIsLoadedFromStorage(true);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!isLoadedFromStorage) return;
+    try {
+      if (messages.length > 0) {
+        window.localStorage.setItem(storageKey, JSON.stringify(messages));
+      } else {
+        window.localStorage.removeItem(storageKey);
+      }
+    } catch {
+      // Bỏ qua lỗi ghi localStorage
+    }
+  }, [messages, storageKey, isLoadedFromStorage]);
+
+  function clearHistory() {
+    setMessages([]);
+    setActiveProposal(null);
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      // Bỏ qua
+    }
+  }
 
   const proposalsList = usePagedList<AiProposal>("/ai/proposals", {
     page: proposalPage,
@@ -368,14 +411,27 @@ export default function AiPage() {
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <div>
           <div className="flex h-[34rem] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-card">
-            <div className="flex items-center gap-3 border-b border-border px-5 py-3.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-primary">
-                <Icon name="smart_toy" className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-ink">Hội thoại</p>
-                <p className="text-xs text-muted">Hỏi đáp và thao tác bằng ngôn ngữ tự nhiên</p>
+            <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-primary">
+                  <Icon name="smart_toy" className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-ink">Hội thoại</p>
+                  <p className="text-xs text-muted">Hỏi đáp và thao tác bằng ngôn ngữ tự nhiên</p>
+                </div>
               </div>
+              {messages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearHistory}
+                  title="Xóa lịch sử và bắt đầu cuộc trò chuyện mới"
+                  className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-container hover:text-ink transition-colors shadow-sm"
+                >
+                  <Icon name="refresh" className="h-3.5 w-3.5" />
+                  Đoạn chat mới
+                </button>
+              )}
             </div>
             <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
               {messages.length === 0 && (

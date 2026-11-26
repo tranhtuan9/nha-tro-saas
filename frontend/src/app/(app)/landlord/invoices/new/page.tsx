@@ -55,8 +55,8 @@ export default function CreateInvoicePage() {
     [properties.rows],
   );
 
-  // Tự suy diễn nhà trọ: ưu tiên lựa chọn của user, nếu chưa chọn thì lấy nhà trọ hoạt động đầu tiên
-  const propertyId = selectedPropertyId || activeProperties[0]?.id || "";
+  // Không tự động chọn nhà trọ: để người dùng tự chọn
+  const propertyId = selectedPropertyId;
 
   const activeContracts = usePagedList<Contract>("/contracts", {
     pageSize: 100,
@@ -64,10 +64,10 @@ export default function CreateInvoicePage() {
     propertyId: propertyId || undefined,
   });
 
-  // Tự suy diễn hợp đồng: ưu tiên lựa chọn của user, nếu chưa chọn thì lấy hợp đồng đầu tiên
+  // Không tự động chọn hợp đồng: chỉ lấy khi người dùng đã chọn
   const contractId = (selectedContractId && activeContracts.rows.some((c) => c.id === selectedContractId))
     ? selectedContractId
-    : activeContracts.rows[0]?.id || "";
+    : "";
 
   const rooms = usePagedList<Room>("/rooms", { pageSize: 100 });
   const renters = usePagedList<Renter>("/renters", { pageSize: 100 });
@@ -296,7 +296,9 @@ export default function CreateInvoicePage() {
               <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                 <p className="text-xs text-slate-500 font-medium">Chỉ số điện:</p>
                 <p className="mt-1 text-sm font-bold text-slate-900">
-                  {meterLoading ? (
+                  {!contractId ? (
+                    <span className="text-slate-400 font-normal">Vui lòng chọn phòng để xem chỉ số</span>
+                  ) : meterLoading ? (
                     "Đang kiểm tra..."
                   ) : meterRow?.current ? (
                     `Điện: ${meterRow.previous?.electricityIndex ?? 0} → ${meterRow.current.electricityIndex} (${meterRow.current.electricityUsage} kWh)`
@@ -309,7 +311,9 @@ export default function CreateInvoicePage() {
               <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                 <p className="text-xs text-slate-500 font-medium">Chỉ số nước:</p>
                 <p className="mt-1 text-sm font-bold text-slate-900">
-                  {meterLoading ? (
+                  {!contractId ? (
+                    <span className="text-slate-400 font-normal">Vui lòng chọn phòng để xem chỉ số</span>
+                  ) : meterLoading ? (
                     "Đang kiểm tra..."
                   ) : meterRow?.current ? (
                     `Nước: ${meterRow.previous?.waterIndex ?? 0} → ${meterRow.current.waterIndex} (${meterRow.current.waterUsage} m³)`
@@ -344,7 +348,13 @@ export default function CreateInvoicePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {services.length === 0 ? (
+                  {!propertyId ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                        Vui lòng chọn nhà trọ để hiển thị danh mục dịch vụ
+                      </td>
+                    </tr>
+                  ) : services.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
                         Nhà trọ chưa có dịch vụ nào đang hoạt động
